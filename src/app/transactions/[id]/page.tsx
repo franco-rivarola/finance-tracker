@@ -1,28 +1,36 @@
 "use client";
 
-import { useParams, useRouter } from "next/navigation";
+import { useRouter, useParams } from "next/navigation";
 import { useTransactions } from "@/context/TransactionsContext";
+import TransactionForm from "@/components/TransactionForm";
 import { useMemo } from "react";
 import { TransactionInput } from "@/types/transaction";
-import TransactionForm from "@/components/TransactionForm";
 
 export default function EditTransaction() {
-  const { id } = useParams();
   const router = useRouter();
-  const { getTransaction, updateTransaction } =
-    useTransactions();
+  const params = useParams();
+  const id = params.id as string;
+
+  const { updateTransaction, getTransaction } = useTransactions();
 
   const data = useMemo<TransactionInput | null>(() => {
-    const transaction = getTransaction(id as string);
+    const transaction = getTransaction(id);
 
     if (!transaction) return null;
 
-    const { id: transactionId, ...rest } = transaction;
-    void transactionId;
-    return rest;
-  }, [getTransaction, id]);
+    // ✅ FIX CLAVE (convertimos a categoryId)
+    return {
+      amount: transaction.amount,
+      description: transaction.description,
+      type: transaction.type,
+      categoryId: transaction.category.id,
+      date: transaction.date,
+    };
+  }, [id, getTransaction]);
 
-  if (!data) return <p>Cargando...</p>;
+  if (!data) {
+    return <p className="text-gray-500">Cargando...</p>;
+  }
 
   return (
     <div className="bg-white p-5 rounded-2xl shadow">
@@ -33,8 +41,8 @@ export default function EditTransaction() {
       <TransactionForm
         initialData={data}
         submitText="Guardar cambios"
-        onSubmit={(form) => {
-          updateTransaction(id as string, form);
+        onSubmit={(formData) => {
+          updateTransaction(id, formData);
           router.push("/transactions");
         }}
       />

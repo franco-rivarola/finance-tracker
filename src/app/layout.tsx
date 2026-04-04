@@ -20,6 +20,7 @@ export default function RootLayout({
                 <div className="flex gap-4">
                   <Link href="/transactions">Transacciones</Link>
                   <Link href="/dashboard">Dashboard</Link>
+                  <Link href="/categories">Categorias</Link>
                 </div>
               </div>
             </nav>

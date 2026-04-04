@@ -1,12 +1,8 @@
 "use client";
 
-import { useState, useMemo } from "react";
-import {
-  TransactionInput,
-  TransactionType,
-} from "@/types/transaction";
-import { useCategories } from "@/context/CategoriesContext";
-import { Category } from "@/types/category";
+import { useState } from "react";
+import { TransactionInput } from "@/types/transaction";
+import { DEFAULT_CATEGORIES as categories } from "@/constants/categories";
 
 type Props = {
   initialData?: TransactionInput;
@@ -19,107 +15,103 @@ export default function TransactionForm({
   onSubmit,
   submitText = "Guardar",
 }: Props) {
-  const { categories, addCategory } = useCategories();
+  const today = new Date().toISOString().split("T")[0];
 
-  const [form, setForm] = useState<TransactionInput>(
-    initialData || {
-      amount: 0,
-      description: "",
-      type: "expense",
-      category: categories[0],
-      date: "",
-    }
+  const [form, setForm] = useState<TransactionInput>({
+    amount: initialData?.amount ?? 0,
+    description: initialData?.description ?? "",
+    type: initialData?.type ?? "expense",
+    categoryId: initialData?.categoryId ?? "",
+    date: initialData?.date ?? today,
+  });
+
+  const [amountInput, setAmountInput] = useState(
+    initialData?.amount ? formatNumber(initialData.amount) : ""
   );
 
-  const [newCategory, setNewCategory] = useState("");
+  // 🔥 categorías por tipo
+  const filteredCategories = categories.filter(
+    (c) => c.type === form.type
+  );
 
-  // 🔥 Filtrar categorías según tipo
-  const filteredCategories = useMemo(() => {
-    return categories.filter((c) => c.type === form.type);
-  }, [categories, form.type]);
+  // 🔥 helpers monto
+  function formatNumber(value: number | string) {
+    const num = Number(value);
+    if (!num) return "";
+    return num.toLocaleString("es-AR");
+  }
+
+  function parseNumber(value: string) {
+    return Number(value.replace(/\./g, ""));
+  }
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!form.description || !form.date) {
-      alert("Campos obligatorios");
-      return;
-    }
+    if (!form.amount || !form.categoryId) return;
 
-    onSubmit({
-      ...form,
-      amount: Number(form.amount),
-      type: form.type as TransactionType,
-    });
-  };
-
-  const handleAddCategory = () => {
-    if (!newCategory) return;
-
-    const newCat: Category = {
-      id: crypto.randomUUID(),
-      name: newCategory,
-      type: form.type,
-    };
-
-    addCategory(newCat);
-    setForm({ ...form, category: newCat });
-    setNewCategory("");
+    onSubmit(form);
   };
 
   return (
-    <form onSubmit={handleSubmit} className="grid gap-4">
-      <input
-        type="number"
-        placeholder="Monto"
-        className="border p-2 rounded"
-        value={form.amount}
-        onChange={(e) =>
-          setForm({ ...form, amount: Number(e.target.value) })
-        }
-      />
-
+    <form onSubmit={handleSubmit} className="space-y-4">
+      {/* MONTO */}
       <input
         type="text"
-        placeholder="Descripción"
-        className="border p-2 rounded"
+        inputMode="numeric"
+        placeholder="$ 0"
+        value={amountInput}
+        onChange={(e) => {
+          let value = e.target.value;
+
+          // solo números
+          value = value.replace(/\D/g, "");
+
+          setAmountInput(formatNumber(value));
+
+          setForm({
+            ...form,
+            amount: parseNumber(value),
+          });
+        }}
+        className="w-full border p-3 rounded-xl text-lg font-medium"
+      />
+
+      {/* DESCRIPCION */}
+      <input
+        placeholder="Descripción (opcional)"
         value={form.description}
         onChange={(e) =>
           setForm({ ...form, description: e.target.value })
         }
+        className="w-full border p-3 rounded-xl"
       />
 
+      {/* TIPO */}
       <select
-        className="border p-2 rounded"
         value={form.type}
-        onChange={(e) => {
-          const nextType = e.target.value as TransactionType;
-          const nextCategories = categories.filter(
-            (c) => c.type === nextType
-          );
-
+        onChange={(e) =>
           setForm({
             ...form,
-            type: nextType,
-            category: nextCategories[0], // reset
-          });
-        }}
+            type: e.target.value as "income" | "expense",
+            categoryId: "",
+          })
+        }
+        className="w-full border p-3 rounded-xl"
       >
         <option value="expense">Gasto</option>
         <option value="income">Ingreso</option>
       </select>
 
-      {/* 🔥 SELECT DE CATEGORÍAS */}
+      {/* CATEGORIA */}
       <select
-        className="border p-2 rounded"
-        value={form.category?.id}
-        onChange={(e) => {
-          const cat = filteredCategories.find(
-            (c) => c.id === e.target.value
-          );
-          if (cat) setForm({ ...form, category: cat });
-        }}
+        value={form.categoryId}
+        onChange={(e) =>
+          setForm({ ...form, categoryId: e.target.value })
+        }
+        className="w-full border p-3 rounded-xl"
       >
+        <option value="">Seleccionar categoría</option>
         {filteredCategories.map((c) => (
           <option key={c.id} value={c.id}>
             {c.name}
@@ -127,34 +119,22 @@ export default function TransactionForm({
         ))}
       </select>
 
-      {/* ➕ Crear categoría */}
-      <div className="flex gap-2">
-        <input
-          type="text"
-          placeholder="Nueva categoría"
-          className="border p-2 rounded flex-1"
-          value={newCategory}
-          onChange={(e) => setNewCategory(e.target.value)}
-        />
-        <button
-          type="button"
-          onClick={handleAddCategory}
-          className="bg-gray-200 px-3 rounded"
-        >
-          +
-        </button>
-      </div>
-
+      {/* FECHA */}
       <input
         type="date"
-        className="border p-2 rounded"
         value={form.date}
         onChange={(e) =>
           setForm({ ...form, date: e.target.value })
         }
+        className="w-full border p-3 rounded-xl"
       />
 
-      <button className="bg-blue-500 text-white p-2 rounded">
+      {/* BOTÓN GUARDAR */}
+      <button
+        type="submit"
+        disabled={!form.amount || !form.categoryId}
+        className="w-full bg-blue-600 text-white py-3 rounded-xl font-semibold shadow hover:bg-blue-700 transition disabled:opacity-40"
+      >
         {submitText}
       </button>
     </form>

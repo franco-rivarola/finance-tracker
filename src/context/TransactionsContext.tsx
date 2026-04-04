@@ -1,104 +1,72 @@
 "use client";
 
-import {
-  createContext,
-  useContext,
-  useEffect,
-  useState,
-} from "react";
-import {
-  Transaction,
-  TransactionInput,
-} from "@/types/transaction";
-import { defaultCategories } from "@/constants/categories";
-import { Category } from "@/types/category";
+import { createContext, useContext, useEffect, useState } from "react";
+import { Transaction, TransactionInput } from "@/types/transaction";
+import { useCategories } from "./CategoriesContext";
+import { v4 as uuid } from "uuid";
 
-interface ContextProps {
+type TransactionsContextType = {
   transactions: Transaction[];
-  addTransaction: (t: TransactionInput) => void;
+  addTransaction: (data: TransactionInput) => void;
   deleteTransaction: (id: string) => void;
-  getTransaction: (id: string) => Transaction | undefined;
-  updateTransaction: (id: string, t: TransactionInput) => void;
-}
-
-const TransactionsContext = createContext<ContextProps | null>(
-  null
-);
-
-const STORAGE_KEY = "transactions";
-
-const categoryById = new Map(
-  defaultCategories.map((category) => [category.id, category])
-);
-
-const normalizeCategory = (category: Transaction["category"] | string): Category => {
-  if (typeof category !== "string") {
-    return category;
-  }
-
-  return (
-    categoryById.get(category) ?? {
-      id: category,
-      name: category,
-      type: "expense",
-    }
-  );
+  updateTransaction: (id: string, data: TransactionInput) => void;
+  getTransaction: (id: string) => Transaction | undefined; // ✅ FIX
 };
 
-const normalizeTransaction = (transaction: Transaction): Transaction => ({
-  ...transaction,
-  category: normalizeCategory(transaction.category),
-});
+const TransactionsContext = createContext<TransactionsContextType | null>(null);
 
 export const TransactionsProvider = ({
   children,
 }: {
   children: React.ReactNode;
 }) => {
-  const [transactions, setTransactions] = useState<
-    Transaction[]
-  >(() => {
-    // 👇 evita flicker
-    if (typeof window === "undefined") return [];
-    const data = localStorage.getItem(STORAGE_KEY);
-    return data
-      ? (JSON.parse(data) as Transaction[]).map(normalizeTransaction)
-      : [];
-  });
+  const { categories } = useCategories();
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
 
   useEffect(() => {
-    localStorage.setItem(
-      STORAGE_KEY,
-      JSON.stringify(transactions)
-    );
+    const stored = localStorage.getItem("transactions");
+    if (stored) setTransactions(JSON.parse(stored));
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem("transactions", JSON.stringify(transactions));
   }, [transactions]);
 
-  const addTransaction = (t: TransactionInput) => {
-    setTransactions((prev) => [
-      ...prev,
-      { ...t, id: crypto.randomUUID() },
-    ]);
+  const resolveCategory = (categoryId: string) => {
+    const category = categories.find((c) => c.id === categoryId);
+    if (!category) throw new Error("Categoría inválida");
+    return category;
+  };
+
+  const addTransaction = (data: TransactionInput) => {
+    const category = resolveCategory(data.categoryId);
+
+    const newTransaction: Transaction = {
+      ...data,
+      id: uuid(),
+      category,
+    };
+
+    setTransactions((prev) => [newTransaction, ...prev]);
   };
 
   const deleteTransaction = (id: string) => {
-    setTransactions((prev) =>
-      prev.filter((t) => t.id !== id)
-    );
+    setTransactions((prev) => prev.filter((t) => t.id !== id));
   };
 
-  const getTransaction = (id: string) => {
-    return transactions.find((t) => t.id === id);
-  };
+  const updateTransaction = (id: string, data: TransactionInput) => {
+    const category = resolveCategory(data.categoryId);
 
-  const updateTransaction = (
-    id: string,
-    updated: TransactionInput
-  ) => {
     setTransactions((prev) =>
       prev.map((t) =>
-        t.id === id ? { ...updated, id } : t
+        t.id === id ? { ...t, ...data, category } : t
       )
     );
+  };
+
+  // ✅ FIX CLAVE
+  const getTransaction = (id: string) => {
+    return transactions.find((t) => t.id === id);
   };
 
   return (
@@ -107,8 +75,8 @@ export const TransactionsProvider = ({
         transactions,
         addTransaction,
         deleteTransaction,
-        getTransaction,
         updateTransaction,
+        getTransaction, // ✅ FIX
       }}
     >
       {children}
