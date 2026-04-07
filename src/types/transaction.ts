@@ -12,14 +12,15 @@ export type Transaction = {
   description: string;
   type: TransactionType;
   category: Category;
+  accountId: string; // 🔥 NUEVO
   date: string;
 };
 
-// 👇 IMPORTANTE
 export type TransactionInput = {
-  amount: number ;
+  amount: number;
   description: string;
   type: TransactionType;
   categoryId: string;
+  accountId: string; // 🔥 NUEVO
   date: string;
 };

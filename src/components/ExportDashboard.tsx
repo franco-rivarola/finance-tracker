@@ -1,4 +1,4 @@
-"use client";
+/* "use client";
 
 import { Transaction } from "@/types/transaction";
 import Papa from "papaparse";
@@ -52,3 +52,4 @@ export default function ExportDashboard({ transactions }: Props) {
     </div>
   );
 }
+ */

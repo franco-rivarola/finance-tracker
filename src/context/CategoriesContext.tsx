@@ -12,59 +12,68 @@ type CategoriesContextType = {
 };
 
 const CategoriesContext = createContext<CategoriesContextType | null>(null);
+const STORAGE_KEY = "categories";
+
+const isValidCategory = (value: unknown): value is Category => {
+  if (!value || typeof value !== "object") return false;
+
+  const category = value as Partial<Category>;
+
+  return Boolean(category.id && category.name && category.type);
+};
 
 export const CategoriesProvider = ({
   children,
 }: {
   children: React.ReactNode;
 }) => {
-  const [categories, setCategories] = useState<Category[]>([]);
+  const [categories, setCategories] = useState<Category[]>(() => {
+    if (typeof window === "undefined") return DEFAULT_CATEGORIES;
 
-  useEffect(() => {
-    const stored = localStorage.getItem("categories");
+    const stored = localStorage.getItem(STORAGE_KEY);
 
-    if (stored) {
+    if (!stored) return DEFAULT_CATEGORIES;
+
+    try {
       const parsed = JSON.parse(stored);
 
-      // 🔥 VALIDACIÓN PRO
-      const valid = parsed.every(
-        (c: any) => c.id && c.name && c.type
-      );
-
-      if (valid) {
-        setCategories(parsed);
-      } else {
-        localStorage.removeItem("categories");
-        setCategories(DEFAULT_CATEGORIES);
+      if (
+        Array.isArray(parsed) &&
+        parsed.length > 0 &&
+        parsed.every(isValidCategory)
+      ) {
+        return parsed;
       }
-    } else {
-      setCategories(DEFAULT_CATEGORIES);
+    } catch {
+      localStorage.removeItem(STORAGE_KEY);
     }
-  }, []);
+
+    return DEFAULT_CATEGORIES;
+  });
 
   useEffect(() => {
     if (categories.length > 0) {
-      localStorage.setItem("categories", JSON.stringify(categories));
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(categories));
     }
   }, [categories]);
 
-const addCategory = (name: string, type: TransactionType) => {
-  const exists = categories.some(
-    (c) =>
-      c.name.toLowerCase() === name.toLowerCase() &&
-      c.type === type
-  );
+  const addCategory = (name: string, type: TransactionType) => {
+    const exists = categories.some(
+      (c) =>
+        c.name.toLowerCase() === name.toLowerCase() &&
+        c.type === type
+    );
 
-  if (exists) {
-    alert("La categoría ya existe");
-    return;
-  }
+    if (exists) {
+      alert("La categoría ya existe");
+      return;
+    }
 
-  setCategories((prev) => [
-    ...prev,
-    { id: uuid(), name, type },
-  ]);
-};
+    setCategories((prev) => [
+      ...prev,
+      { id: uuid(), name, type },
+    ]);
+  };
 
   const deleteCategory = (id: string) => {
     setCategories((prev) => prev.filter((c) => c.id !== id));

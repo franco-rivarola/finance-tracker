@@ -40,24 +40,18 @@ export default function MonthlyComparison({ transactions }: Props) {
   const format = (num: number) => (num >= 0 ? `+${num.toFixed(1)}%` : `${num.toFixed(1)}%`);
 
   return (
-    <div className="bg-white p-5 rounded-2xl shadow grid grid-cols-3 text-center">
+    <div className="bg-white border border-gray-200 p-5 rounded-3xl grid grid-cols-3 text-center">
       <div>
-        <h3 className="text-gray-500">Ingresos vs mes anterior</h3>
-        <p className={`text-lg font-bold ${changeIncome >= 0 ? "text-green-600" : "text-red-500"}`}>
-          {format(changeIncome)}
-        </p>
+        <h3 className="text-gray-500 text-sm">Ingresos</h3>
+        <p className="text-lg font-bold text-black">{format(changeIncome)}</p>
       </div>
       <div>
-        <h3 className="text-gray-500">Gastos vs mes anterior</h3>
-        <p className={`text-lg font-bold ${changeExpense >= 0 ? "text-red-500" : "text-green-600"}`}>
-          {format(changeExpense)}
-        </p>
+        <h3 className="text-gray-500 text-sm">Gastos</h3>
+        <p className="text-lg font-bold text-black">{format(changeExpense)}</p>
       </div>
       <div>
-        <h3 className="text-gray-500">Balance vs mes anterior</h3>
-        <p className={`text-lg font-bold ${changeBalance >= 0 ? "text-green-600" : "text-red-500"}`}>
-          {format(changeBalance)}
-        </p>
+        <h3 className="text-gray-500 text-sm">Balance</h3>
+        <p className="text-lg font-bold text-black">{format(changeBalance)}</p>
       </div>
     </div>
   );

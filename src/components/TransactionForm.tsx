@@ -1,8 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { TransactionInput } from "@/types/transaction";
-import { DEFAULT_CATEGORIES as categories } from "@/constants/categories";
+import { useAccounts } from "@/context/AccountsContext";
+import { useTransactions } from "@/context/TransactionsContext";
+import { useCategories } from "@/context/CategoriesContext";
 
 type Props = {
   initialData?: TransactionInput;
@@ -15,6 +17,10 @@ export default function TransactionForm({
   onSubmit,
   submitText = "Guardar",
 }: Props) {
+  const { accounts } = useAccounts();
+  const { getAccountBalance } = useTransactions();
+  const { categories } = useCategories();
+
   const today = new Date().toISOString().split("T")[0];
 
   const [form, setForm] = useState<TransactionInput>({
@@ -22,6 +28,7 @@ export default function TransactionForm({
     description: initialData?.description ?? "",
     type: initialData?.type ?? "expense",
     categoryId: initialData?.categoryId ?? "",
+    accountId: initialData?.accountId ?? accounts[0]?.id ?? "", // 🔥
     date: initialData?.date ?? today,
   });
 
@@ -29,12 +36,35 @@ export default function TransactionForm({
     initialData?.amount ? formatNumber(initialData.amount) : ""
   );
 
-  // 🔥 categorías por tipo
   const filteredCategories = categories.filter(
     (c) => c.type === form.type
   );
 
-  // 🔥 helpers monto
+  const selectedAccountBalance = getAccountBalance(form.accountId);
+  const availableBalance = useMemo(() => {
+    if (!form.accountId) return 0;
+
+    if (!initialData || initialData.accountId !== form.accountId) {
+      return selectedAccountBalance;
+    }
+
+    if (initialData.type === "expense") {
+      return selectedAccountBalance + initialData.amount;
+    }
+
+    if (initialData.type === "income") {
+      return selectedAccountBalance - initialData.amount;
+    }
+
+    return selectedAccountBalance;
+  }, [form.accountId, initialData, selectedAccountBalance]);
+
+  const insufficientFunds =
+    form.type === "expense" &&
+    form.amount > 0 &&
+    form.accountId !== "" &&
+    form.amount > availableBalance;
+
   function formatNumber(value: number | string) {
     const num = Number(value);
     if (!num) return "";
@@ -48,45 +78,20 @@ export default function TransactionForm({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!form.amount || !form.categoryId) return;
+    if (
+      !form.amount ||
+      !form.categoryId ||
+      !form.accountId ||
+      insufficientFunds
+    ) {
+      return;
+    }
 
     onSubmit(form);
   };
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
-      {/* MONTO */}
-      <input
-        type="text"
-        inputMode="numeric"
-        placeholder="$ 0"
-        value={amountInput}
-        onChange={(e) => {
-          let value = e.target.value;
-
-          // solo números
-          value = value.replace(/\D/g, "");
-
-          setAmountInput(formatNumber(value));
-
-          setForm({
-            ...form,
-            amount: parseNumber(value),
-          });
-        }}
-        className="w-full border p-3 rounded-xl text-lg font-medium"
-      />
-
-      {/* DESCRIPCION */}
-      <input
-        placeholder="Descripción (opcional)"
-        value={form.description}
-        onChange={(e) =>
-          setForm({ ...form, description: e.target.value })
-        }
-        className="w-full border p-3 rounded-xl"
-      />
-
       {/* TIPO */}
       <select
         value={form.type}
@@ -119,6 +124,67 @@ export default function TransactionForm({
         ))}
       </select>
 
+      {/* 🏦 CUENTA 🔥 */}
+      <select
+        value={form.accountId}
+        onChange={(e) =>
+          setForm({ ...form, accountId: e.target.value })
+        }
+        className="w-full border p-3 rounded-xl"
+      >
+        <option value="">Seleccionar cuenta</option>
+        {accounts.map((acc) => (
+          <option key={acc.id} value={acc.id}>
+            {acc.name}
+          </option>
+        ))}
+      </select>
+
+      {form.accountId && (
+        <p className="text-sm text-gray-500">
+          Disponible:{" "}
+          <span className="font-semibold text-black">
+            ${availableBalance.toLocaleString("es-AR")}
+          </span>
+        </p>
+      )}
+
+      {insufficientFunds && (
+        <p className="text-sm font-medium text-red-500">
+          No tenés saldo suficiente en la cuenta seleccionada para registrar este gasto.
+        </p>
+      )}
+
+      {/* MONTO */}
+      <input
+        type="text"
+        inputMode="numeric"
+        placeholder="$ 0"
+        value={amountInput}
+        onChange={(e) => {
+          let value = e.target.value;
+          value = value.replace(/\D/g, "");
+
+          setAmountInput(formatNumber(value));
+
+          setForm({
+            ...form,
+            amount: parseNumber(value),
+          });
+        }}
+        className="w-full border p-3 rounded-xl text-lg font-medium"
+      />
+
+      {/* DESCRIPCION */}
+      <input
+        placeholder="Descripción (opcional)"
+        value={form.description}
+        onChange={(e) =>
+          setForm({ ...form, description: e.target.value })
+        }
+        className="w-full border p-3 rounded-xl"
+      />
+
       {/* FECHA */}
       <input
         type="date"
@@ -129,11 +195,16 @@ export default function TransactionForm({
         className="w-full border p-3 rounded-xl"
       />
 
-      {/* BOTÓN GUARDAR */}
+      {/* BOTÓN */}
       <button
         type="submit"
-        disabled={!form.amount || !form.categoryId}
-        className="w-full bg-blue-600 text-white py-3 rounded-xl font-semibold shadow hover:bg-blue-700 transition disabled:opacity-40"
+        disabled={
+          !form.amount ||
+          !form.categoryId ||
+          !form.accountId ||
+          insufficientFunds
+        }
+        className="w-full bg-[#FFD600] text-white py-3 rounded-xl font-semibold shadow hover:bg-blue-700 transition disabled:opacity-40"
       >
         {submitText}
       </button>

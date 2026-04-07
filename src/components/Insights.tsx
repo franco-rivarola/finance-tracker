@@ -11,7 +11,6 @@ export default function Insights({ transactions }: Props) {
   const insights = useMemo(() => {
     if (!transactions.length) return [];
 
-    // 🔝 Categoría con más gasto
     const categoryMap: Record<string, { name: string; total: number }> = {};
     transactions.forEach(t => {
       if (t.type === "expense") {
@@ -26,7 +25,6 @@ export default function Insights({ transactions }: Props) {
 
     const topCategory = Object.values(categoryMap).sort((a, b) => b.total - a.total)[0];
 
-    // 📅 Día con mayor gasto
     const dayMap: Record<string, number> = {};
     transactions.forEach(t => {
       if (t.type === "expense") {
@@ -37,19 +35,20 @@ export default function Insights({ transactions }: Props) {
     const topDay = Object.entries(dayMap).sort((a, b) => b[1] - a[1])[0];
 
     return [
-      topCategory && `💸 Gastaste más en ${topCategory.name} ($${topCategory.total})`,
-      topDay && `📅 Tu mayor gasto fue el ${topDay[0]} ($${topDay[1]})`,
+      topCategory && `Gastaste más en ${topCategory.name} ($${topCategory.total})`,
+      topDay && `Mayor gasto el ${topDay[0]} ($${topDay[1]})`,
     ].filter(Boolean);
   }, [transactions]);
 
   if (!insights.length) return null;
 
   return (
-    <div className="bg-white p-4 rounded-2xl shadow space-y-2">
-      <h3 className="font-semibold text-gray-700">🧠 Insights</h3>
+    <div className="bg-yellow-50 border border-yellow-200 p-4 rounded-3xl">
+      <h3 className="font-semibold text-black mb-2">Insights</h3>
+
       {insights.map((text, i) => (
-        <p key={i} className="text-sm text-gray-600">
-          {text}
+        <p key={i} className="text-sm text-gray-700">
+          • {text}
         </p>
       ))}
     </div>

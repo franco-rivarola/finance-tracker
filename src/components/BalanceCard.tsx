@@ -3,15 +3,15 @@
 type Props = {
   title: string;
   amount: number;
-  className?: string;
 };
 
-export default function BalanceCard({ title, amount, className }: Props) {
+export default function BalanceCard({ title, amount }: Props) {
   return (
-    <div className={`bg-white p-5 rounded-2xl shadow ${className}`}>
-      <h2 className="text-gray-500">{title}</h2>
-      <p className="text-2xl font-bold">
-        ${amount.toLocaleString()}
+    <div className="bg-white text-black p-5 rounded-2xl">
+      <p className="text-sm text-gray-400">{title}</p>
+
+      <p className="text-3xl font-bold mt-1">
+        ${amount.toLocaleString("es-AR")}
       </p>
     </div>
   );

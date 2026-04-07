@@ -8,41 +8,36 @@ import CategoryChart from "@/components/CategoryChart";
 import TopCategories from "@/components/TopCategories";
 import MonthlyComparison from "@/components/MonthlyComparison";
 import AnimatedCard from "@/components/AnimatedCard";
-import ExportDashboard from "@/components/ExportDashboard";
+/* import ExportDashboard from "@/components/ExportDashboard"; */
 import IncomeExpenseBarChart from "@/components/IncomeExpenseBarChart";
 import Insights from "@/components/Insights";
-
+import AccountsSummary from "@/components/AccountsSummary";
 import DateFilter from "@/components/DateFilter";
+import TransferModal from "@/components/TransferModal";
+
+type DateRange = {
+  start: string;
+  end: string;
+};
 
 export default function DashboardPage() {
   const { transactions } = useTransactions();
 
-  const [month, setMonth] = useState(
-    new Date().toISOString().slice(0, 7)
-  );
+  const [transferOpen, setTransferOpen] = useState(false);
+  const [month, setMonth] = useState(new Date().toISOString().slice(0, 7));
+  const [range, setRange] = useState<DateRange | null>(null);
 
-  const [range, setRange] = useState<{
-    start: string;
-    end: string;
-  } | null>(null);
-
-  // 🔁 Manejo de filtros
-  const handleFilter = (
-    m: string,
-    r: { start: string; end: string } | null
-  ) => {
+  const handleFilter = (m: string, r: DateRange | null) => {
     setMonth(m);
     setRange(r);
   };
 
-  // 🔎 Filtrado principal
   const filtered = transactions.filter((t) => {
     if (range) return t.date >= range.start && t.date <= range.end;
     if (month) return t.date.startsWith(month);
     return true;
   });
 
-  // 💰 Cálculos
   const income = filtered
     .filter((t) => t.type === "income")
     .reduce((acc, t) => acc + t.amount, 0);
@@ -54,44 +49,42 @@ export default function DashboardPage() {
   const balance = income - expense;
 
   return (
-    <div className="space-y-6">
-      {/* 🔥 Title */}
-      <h1 className="text-3xl font-bold">
-        🔥 Dashboard PRO Fintech
-      </h1>
-
-      {/* 📅 Filtros */}
-      <DateFilter onChange={handleFilter} />
-
-      {/* 💰 Balance */}
-      <AnimatedCard>
-        <div className="grid md:grid-cols-3 gap-4">
-          <BalanceCard
-            title="Ingresos"
-            amount={income}
-            className="text-green-600"
-          />
-
-          <BalanceCard
-            title="Gastos"
-            amount={expense}
-            className="text-red-500"
-          />
-
-          <BalanceCard
-            title="Balance"
-            amount={balance}
-            className={
-              balance >= 0 ? "text-green-600" : "text-red-500"
-            }
-          />
+    <div className="space-y-8">
+      {/* HEADER */}
+      <div className="flex justify-between items-center">
+        <div>
+          <h1 className="text-3xl font-bold">Inicio</h1>
+          <p className="text-zinc-400 text-sm">Control total de tus finanzas</p>
         </div>
-      </AnimatedCard>
+      </div>
+      {/* 🔥 FILTER ARRIBA */}
+      <div className="bg-zinc-900 p-4 rounded-2xl border border-zinc-800">
+        <DateFilter onChange={handleFilter} />
+      </div>
 
-      {/* 🧠 Insights */}
+      <div className="space-y-4 bg-zinc-900 p-4 rounded-2xl border border-zinc-800">
+        <button
+          onClick={() => setTransferOpen(true)}
+          className="bg-[#FFD600] text-black px-5 py-2  rounded-xl font-semibold hover:scale-105 transition"
+        >
+          💸 Transferir
+        </button>
+
+        <AccountsSummary transactions={filtered} />
+      </div>
+
+      {/* CUENTAS */}
+      {/* BALANCE */}
+      <div className="grid md:grid-cols-3 gap-4">
+        <BalanceCard title="Ingresos" amount={income} />
+        <BalanceCard title="Gastos" amount={expense} />
+        <BalanceCard title="Balance" amount={balance} />
+      </div>
+
+      {/* INSIGHTS */}
       <Insights transactions={filtered} />
 
-      {/* 📊 Gráficos principales */}
+      {/* CHARTS */}
       <div className="grid md:grid-cols-2 gap-4">
         <AnimatedCard>
           <CategoryChart transactions={filtered} />
@@ -102,22 +95,24 @@ export default function DashboardPage() {
         </AnimatedCard>
       </div>
 
-      {/* 🏆 Top categorías */}
       <AnimatedCard>
         <TopCategories transactions={filtered} top={5} />
       </AnimatedCard>
 
-      {/* 📉 Comparación mensual (solo si NO hay rango) */}
       {!range && (
         <AnimatedCard>
           <MonthlyComparison transactions={filtered} />
         </AnimatedCard>
       )}
 
-      {/* 📤 Export */}
-      <AnimatedCard>
+      {/*       <AnimatedCard>
         <ExportDashboard transactions={filtered} />
-      </AnimatedCard>
+      </AnimatedCard> */}
+
+      <TransferModal
+        open={transferOpen}
+        onClose={() => setTransferOpen(false)}
+      />
     </div>
   );
 }
