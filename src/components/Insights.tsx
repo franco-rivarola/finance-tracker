@@ -2,6 +2,7 @@
 
 import { Transaction } from "@/types/transaction";
 import { useMemo } from "react";
+import { formatMoney, getTransactionBaseAmount } from "@/utils/currency";
 
 type Props = {
   transactions: Transaction[];
@@ -18,7 +19,7 @@ export default function Insights({ transactions }: Props) {
         const current = categoryMap[key] || { name: t.category.name, total: 0 };
         categoryMap[key] = {
           name: t.category.name,
-          total: current.total + t.amount,
+          total: current.total + getTransactionBaseAmount(t),
         };
       }
     });
@@ -28,15 +29,15 @@ export default function Insights({ transactions }: Props) {
     const dayMap: Record<string, number> = {};
     transactions.forEach(t => {
       if (t.type === "expense") {
-        dayMap[t.date] = (dayMap[t.date] || 0) + t.amount;
+        dayMap[t.date] = (dayMap[t.date] || 0) + getTransactionBaseAmount(t);
       }
     });
 
     const topDay = Object.entries(dayMap).sort((a, b) => b[1] - a[1])[0];
 
     return [
-      topCategory && `Gastaste más en ${topCategory.name} ($${topCategory.total})`,
-      topDay && `Mayor gasto el ${topDay[0]} ($${topDay[1]})`,
+      topCategory && `Gastaste más en ${topCategory.name} (${formatMoney(topCategory.total)})`,
+      topDay && `Mayor gasto el ${topDay[0]} (${formatMoney(topDay[1])})`,
     ].filter(Boolean);
   }, [transactions]);
 

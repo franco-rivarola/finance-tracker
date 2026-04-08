@@ -7,7 +7,8 @@ import { v4 as uuid } from "uuid";
 
 type AccountsContextType = {
   accounts: Account[];
-  addAccount: (name: string, type: Account["type"]) => Account | null;
+  addAccount: (name: string, type: Account["type"], currency?: Account["currency"]) => Account | null;
+  updateAccount: (id: string, name: string, currency?: Account["currency"]) => Account | null;
   deleteAccount: (id: string) => boolean;
 };
 
@@ -35,11 +36,11 @@ export const AccountsProvider = ({
 }: {
   children: React.ReactNode;
 }) => {
-  const [accounts, setAccounts] = useState<Account[]>(() => {
-    if (typeof window === "undefined") return DEFAULT_ACCOUNTS;
+  const [accounts, setAccounts] = useState<Account[]>(DEFAULT_ACCOUNTS);
 
+  useEffect(() => {
     const stored = localStorage.getItem(STORAGE_KEY);
-    if (!stored) return DEFAULT_ACCOUNTS;
+    if (!stored) return;
 
     try {
       const parsed = JSON.parse(stored);
@@ -48,23 +49,24 @@ export const AccountsProvider = ({
         parsed.length > 0 &&
         parsed.every(isValidAccount)
       ) {
-        return parsed.map((account) => ({
-          ...account,
-          name: normalizeAccountName(account.name),
-        }));
+        setAccounts(
+          parsed.map((account) => ({
+            ...account,
+            name: normalizeAccountName(account.name),
+            currency: account.currency ?? "ARS",
+          }))
+        );
       }
     } catch {
       localStorage.removeItem(STORAGE_KEY);
     }
-
-    return DEFAULT_ACCOUNTS;
-  });
+  }, []);
 
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(accounts));
   }, [accounts]);
 
-  const addAccount = (name: string, type: Account["type"]) => {
+  const addAccount = (name: string, type: Account["type"], currency: Account["currency"] = "ARS") => {
     const trimmedName = name.trim();
     if (!trimmedName) return null;
 
@@ -81,10 +83,37 @@ export const AccountsProvider = ({
       id: uuid(),
       name: normalizeAccountName(trimmedName),
       type,
+      currency,
     };
 
     setAccounts((prev) => [...prev, newAccount]);
     return newAccount;
+  };
+
+  const updateAccount = (id: string, name: string, currency?: Account["currency"]) => {
+    const trimmedName = name.trim();
+    if (!trimmedName) return null;
+
+    const account = accounts.find((item) => item.id === id);
+    if (!account) return null;
+
+    const normalizedName = normalizeAccountName(trimmedName);
+
+    const exists = accounts.some(
+      (item) => item.id !== id && item.name.toLowerCase() === normalizedName.toLowerCase()
+    );
+
+    if (exists) {
+      alert("Ya existe una cuenta con ese nombre");
+      return null;
+    }
+
+    const updated = { ...account, name: normalizedName, currency: currency ?? account.currency };
+    setAccounts((prev) =>
+      prev.map((item) => (item.id === id ? updated : item))
+    );
+
+    return updated;
   };
 
   const deleteAccount = (id: string) => {
@@ -100,7 +129,7 @@ export const AccountsProvider = ({
   };
 
   return (
-    <AccountsContext.Provider value={{ accounts, addAccount, deleteAccount }}>
+    <AccountsContext.Provider value={{ accounts, addAccount, updateAccount, deleteAccount }}>
       {children}
     </AccountsContext.Provider>
   );

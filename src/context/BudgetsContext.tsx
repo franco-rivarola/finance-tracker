@@ -7,6 +7,7 @@ import { Budget } from "@/types/budget";
 type BudgetsContextType = {
   budgets: Budget[];
   addBudget: (data: Omit<Budget, "id">) => boolean;
+  updateBudget: (id: string, data: Omit<Budget, "id">) => boolean;
   deleteBudget: (id: string) => void;
 };
 
@@ -31,24 +32,22 @@ export const BudgetsProvider = ({
 }: {
   children: React.ReactNode;
 }) => {
-  const [budgets, setBudgets] = useState<Budget[]>(() => {
-    if (typeof window === "undefined") return [];
+  const [budgets, setBudgets] = useState<Budget[]>([]);
 
+  useEffect(() => {
     const stored = localStorage.getItem(STORAGE_KEY);
-    if (!stored) return [];
+    if (!stored) return;
 
     try {
       const parsed = JSON.parse(stored);
 
       if (Array.isArray(parsed) && parsed.every(isValidBudget)) {
-        return parsed;
+        setBudgets(parsed);
       }
     } catch {
       localStorage.removeItem(STORAGE_KEY);
     }
-
-    return [];
-  });
+  }, []);
 
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(budgets));
@@ -69,12 +68,31 @@ export const BudgetsProvider = ({
     return true;
   };
 
+  const updateBudget = (id: string, data: Omit<Budget, "id">) => {
+    const exists = budgets.some(
+      (item) =>
+        item.id !== id &&
+        item.categoryId === data.categoryId &&
+        item.month === data.month
+    );
+
+    if (exists) {
+      alert("Ya existe un presupuesto para esa categoría en ese mes");
+      return false;
+    }
+
+    setBudgets((prev) =>
+      prev.map((item) => (item.id === id ? { ...item, ...data } : item))
+    );
+    return true;
+  };
+
   const deleteBudget = (id: string) => {
     setBudgets((prev) => prev.filter((budget) => budget.id !== id));
   };
 
   return (
-    <BudgetsContext.Provider value={{ budgets, addBudget, deleteBudget }}>
+    <BudgetsContext.Provider value={{ budgets, addBudget, updateBudget, deleteBudget }}>
       {children}
     </BudgetsContext.Provider>
   );

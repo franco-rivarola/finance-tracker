@@ -5,6 +5,7 @@ import Papa from "papaparse";
 import DateFilter from "@/components/DateFilter";
 import { useAccounts } from "@/context/AccountsContext";
 import { useTransactions } from "@/context/TransactionsContext";
+import { BASE_CURRENCY, formatMoney, getTransactionBaseAmount } from "@/utils/currency";
 
 type DateRange = {
   start: string;
@@ -44,11 +45,11 @@ export default function ReportsPage() {
   );
 
   const income = incomeTransactions.reduce(
-    (total, transaction) => total + transaction.amount,
+    (total, transaction) => total + getTransactionBaseAmount(transaction),
     0
   );
   const expense = expenseTransactions.reduce(
-    (total, transaction) => total + transaction.amount,
+    (total, transaction) => total + getTransactionBaseAmount(transaction),
     0
   );
   const balance = income - expense;
@@ -103,13 +104,13 @@ export default function ReportsPage() {
 
   const previousIncome = previousTransactions
     .filter((transaction) => transaction.type === "income")
-    .reduce((total, transaction) => total + transaction.amount, 0);
+    .reduce((total, transaction) => total + getTransactionBaseAmount(transaction), 0);
   const previousExpense = previousTransactions
     .filter(
       (transaction) =>
         transaction.type === "expense" && transaction.category.id !== "transfer"
     )
-    .reduce((total, transaction) => total + transaction.amount, 0);
+    .reduce((total, transaction) => total + getTransactionBaseAmount(transaction), 0);
   const previousBalance = previousIncome - previousExpense;
 
   const topCategories = (() => {
@@ -124,7 +125,7 @@ export default function ReportsPage() {
     >();
 
     expenseTransactions.forEach((transaction) => {
-      const current = map.get(transaction.category.id) ?? {
+        const current = map.get(transaction.category.id) ?? {
         name: transaction.category.name,
         amount: 0,
         share: 0,
@@ -133,7 +134,7 @@ export default function ReportsPage() {
 
       map.set(transaction.category.id, {
         name: transaction.category.name,
-        amount: current.amount + transaction.amount,
+        amount: current.amount + getTransactionBaseAmount(transaction),
         share: 0,
         count: current.count + 1,
       });
@@ -156,11 +157,11 @@ export default function ReportsPage() {
 
         const incomeTotal = accountTransactions
           .filter((transaction) => transaction.type === "income")
-          .reduce((total, transaction) => total + transaction.amount, 0);
+          .reduce((total, transaction) => total + getTransactionBaseAmount(transaction), 0);
 
         const expenseTotal = accountTransactions
           .filter((transaction) => transaction.type === "expense")
-          .reduce((total, transaction) => total + transaction.amount, 0);
+          .reduce((total, transaction) => total + getTransactionBaseAmount(transaction), 0);
 
         const movementCount = accountTransactions.length;
 
@@ -183,12 +184,12 @@ export default function ReportsPage() {
       const currentMonth = transaction.date.slice(0, 7);
       const current = map.get(currentMonth) ?? { income: 0, expense: 0 };
 
-      if (transaction.type === "income") current.income += transaction.amount;
+      if (transaction.type === "income") current.income += getTransactionBaseAmount(transaction);
       if (
         transaction.type === "expense" &&
         transaction.category.id !== "transfer"
       ) {
-        current.expense += transaction.amount;
+        current.expense += getTransactionBaseAmount(transaction);
       }
 
       map.set(currentMonth, current);
@@ -210,7 +211,7 @@ export default function ReportsPage() {
   const averageIncomeTicket =
     incomeTransactions.length > 0 ? income / incomeTransactions.length : 0;
   const biggestExpense = [...expenseTransactions].sort(
-    (a, b) => b.amount - a.amount
+    (a, b) => getTransactionBaseAmount(b) - getTransactionBaseAmount(a)
   )[0];
 
   const exportCsv = () => {
@@ -224,6 +225,8 @@ export default function ReportsPage() {
           transaction.accountId,
         descripcion: transaction.description,
         monto: transaction.amount,
+        moneda: transaction.currency,
+        monto_base: transaction.baseAmount,
       }))
     );
 
@@ -241,12 +244,8 @@ export default function ReportsPage() {
       title: "Resultado neto",
       text:
         balance >= 0
-          ? `Cerraste el período con superávit de $${balance.toLocaleString(
-              "es-AR"
-            )}.`
-          : `Cerraste el período con déficit de $${Math.abs(balance).toLocaleString(
-              "es-AR"
-            )}.`,
+          ? `Cerraste el período con superávit de ${formatMoney(balance, BASE_CURRENCY)}.`
+          : `Cerraste el período con déficit de ${formatMoney(Math.abs(balance), BASE_CURRENCY)}.`,
     },
     {
       title: "Peso de la categoría principal",
@@ -311,21 +310,17 @@ export default function ReportsPage() {
         <ReportTable
           title="Resumen ejecutivo"
           rows={[
-            ["Ingresos", `$${income.toLocaleString("es-AR")}`],
-            ["Gastos", `$${expense.toLocaleString("es-AR")}`],
-            ["Balance", `$${balance.toLocaleString("es-AR")}`],
+            ["Ingresos", formatMoney(income, BASE_CURRENCY)],
+            ["Gastos", formatMoney(expense, BASE_CURRENCY)],
+            ["Balance", formatMoney(balance, BASE_CURRENCY)],
             ["Tasa de ahorro", `${savingsRate.toFixed(1)}%`],
             [
               "Ticket promedio de gasto",
-              `$${averageExpenseTicket.toLocaleString("es-AR", {
-                maximumFractionDigits: 0,
-              })}`,
+              formatMoney(averageExpenseTicket, BASE_CURRENCY),
             ],
             [
               "Ticket promedio de ingreso",
-              `$${averageIncomeTicket.toLocaleString("es-AR", {
-                maximumFractionDigits: 0,
-              })}`,
+              formatMoney(averageIncomeTicket, BASE_CURRENCY),
             ],
           ]}
         />
@@ -347,9 +342,10 @@ export default function ReportsPage() {
             ],
             [
               "Mayor gasto",
-              biggestExpense
-                ? `${biggestExpense.category.name ?? "-"} · $${biggestExpense.amount.toLocaleString(
-                    "es-AR"
+                biggestExpense
+                ? `${biggestExpense.category.name ?? "-"} · ${formatMoney(
+                    getTransactionBaseAmount(biggestExpense),
+                    BASE_CURRENCY
                   )}`
                 : "-",
             ],
@@ -384,7 +380,7 @@ export default function ReportsPage() {
                         {category.name}
                       </td>
                       <td className="py-3 text-zinc-300">
-                        ${category.amount.toLocaleString("es-AR")}
+                        {formatMoney(category.amount, BASE_CURRENCY)}
                       </td>
                       <td className="py-3 text-zinc-300">
                         {category.share.toFixed(1)}%
@@ -413,12 +409,12 @@ export default function ReportsPage() {
                       account.balance >= 0 ? "text-emerald-400" : "text-rose-400"
                     }`}
                   >
-                    ${account.balance.toLocaleString("es-AR")}
+                    {formatMoney(account.balance, BASE_CURRENCY)}
                   </p>
                 </div>
                 <div className="mt-2 text-sm text-zinc-400">
-                  <p>Ingresos: ${account.income.toLocaleString("es-AR")}</p>
-                  <p>Gastos: ${account.expense.toLocaleString("es-AR")}</p>
+                  <p>Ingresos: {formatMoney(account.income, BASE_CURRENCY)}</p>
+                  <p>Gastos: {formatMoney(account.expense, BASE_CURRENCY)}</p>
                   <p>Movimientos: {account.movementCount}</p>
                 </div>
               </div>
@@ -444,17 +440,17 @@ export default function ReportsPage() {
                 <tr key={row.label} className="border-b border-zinc-900">
                   <td className="py-3 font-medium text-white">{row.label}</td>
                   <td className="py-3 text-zinc-300">
-                    ${row.income.toLocaleString("es-AR")}
+                    {formatMoney(row.income, BASE_CURRENCY)}
                   </td>
                   <td className="py-3 text-zinc-300">
-                    ${row.expense.toLocaleString("es-AR")}
+                    {formatMoney(row.expense, BASE_CURRENCY)}
                   </td>
                   <td
                     className={`py-3 font-medium ${
                       row.balance >= 0 ? "text-emerald-400" : "text-rose-400"
                     }`}
                   >
-                    ${row.balance.toLocaleString("es-AR")}
+                    {formatMoney(row.balance, BASE_CURRENCY)}
                   </td>
                 </tr>
               ))}
@@ -501,12 +497,12 @@ function formatDelta(value: number) {
 }
 
 function compareLine(current: number, previous: number) {
-  if (previous === 0 && current === 0) return "$0";
+  if (previous === 0 && current === 0) return formatMoney(0, BASE_CURRENCY);
   if (previous === 0) {
-    return `$${current.toLocaleString("es-AR")} · nuevo período comparable`;
+    return `${formatMoney(current, BASE_CURRENCY)} · nuevo período comparable`;
   }
 
-  return `$${current.toLocaleString("es-AR")} · ${formatDelta(
+  return `${formatMoney(current, BASE_CURRENCY)} · ${formatDelta(
     percentChange(current, previous)
   )}`;
 }

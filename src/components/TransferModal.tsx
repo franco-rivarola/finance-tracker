@@ -4,6 +4,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useState } from "react";
 import { useAccounts } from "@/context/AccountsContext";
 import { useTransactions } from "@/context/TransactionsContext";
+import CloseIcon from "@mui/icons-material/Close";
+import { convertCurrency, formatExchangeRateLabel, formatMoney } from "@/utils/currency";
 
 type Props = {
   open: boolean;
@@ -26,6 +28,12 @@ export default function TransferModal({ open, onClose }: Props) {
   const selectedBalance = getAccountBalance(form.fromAccountId);
   const amountNumber = Number(form.amount || 0);
   const insufficient = amountNumber > selectedBalance;
+  const fromAccount = accounts.find((account) => account.id === form.fromAccountId);
+  const toAccount = accounts.find((account) => account.id === form.toAccountId);
+  const previewAmount =
+    fromAccount && toAccount && amountNumber
+      ? convertCurrency(amountNumber, fromAccount.currency, toAccount.currency)
+      : 0;
 
   const handleTransfer = () => {
     if (
@@ -59,9 +67,18 @@ export default function TransferModal({ open, onClose }: Props) {
             exit={{ scale: 0.95, opacity: 0 }}
             className="bg-white w-full max-w-md rounded-3xl p-6 shadow-2xl space-y-5 border border-gray-200"
           >
-            <h2 className="text-xl font-bold text-black">
-              Transferir dinero
-            </h2>
+            <div className="flex items-center justify-between gap-4">
+              <h2 className="text-xl font-bold text-black">
+                Transferir dinero
+              </h2>
+              <button
+                onClick={onClose}
+                className="flex h-10 w-10 items-center justify-center rounded-full border border-gray-300 text-gray-600 transition hover:bg-gray-100"
+                aria-label="Cerrar modal"
+              >
+                <CloseIcon fontSize="small" />
+              </button>
+            </div>
 
             {/* DESDE */}
             <select
@@ -84,7 +101,7 @@ export default function TransferModal({ open, onClose }: Props) {
               <p className="text-sm text-gray-500">
                 Disponible:{" "}
                 <span className="font-semibold text-black">
-                  ${selectedBalance}
+                  {formatMoney(selectedBalance, fromAccount?.currency ?? "ARS")}
                 </span>
               </p>
             )}
@@ -125,6 +142,15 @@ export default function TransferModal({ open, onClose }: Props) {
               <p className="text-sm text-red-500 font-medium">
                 No tenés saldo suficiente
               </p>
+            )}
+
+            {fromAccount && toAccount && fromAccount.currency !== toAccount.currency && amountNumber > 0 && (
+              <div className="rounded-2xl border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900">
+                <p className="font-semibold">
+                  Recibís {formatMoney(previewAmount, toAccount.currency)}
+                </p>
+                <p className="mt-1">{formatExchangeRateLabel(fromAccount.currency, toAccount.currency)}</p>
+              </div>
             )}
 
             {/* FECHA */}

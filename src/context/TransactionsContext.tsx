@@ -4,6 +4,8 @@ import { createContext, useContext, useEffect, useState } from "react";
 import { Transaction, TransactionInput } from "@/types/transaction";
 import { useCategories } from "./CategoriesContext";
 import { v4 as uuid } from "uuid";
+import { useAccounts } from "./AccountsContext";
+import { convertCurrency, getBaseAmount } from "@/utils/currency";
 
 type TransferInput = {
   fromAccountId: string;
@@ -40,12 +42,31 @@ export const TransactionsProvider = ({
   children: React.ReactNode;
 }) => {
   const { categories } = useCategories();
+  const { accounts } = useAccounts();
   const [transactions, setTransactions] = useState<Transaction[]>([]);
 
   useEffect(() => {
     const stored = localStorage.getItem("transactions");
-    if (stored) setTransactions(JSON.parse(stored));
-  }, []);
+    if (!stored) return;
+
+    try {
+      const parsed = JSON.parse(stored) as Transaction[];
+      setTransactions(
+        parsed.map((transaction) => {
+          const account = accounts.find((item) => item.id === transaction.accountId);
+          const currency = transaction.currency ?? account?.currency ?? "ARS";
+          return {
+            ...transaction,
+            currency,
+            exchangeRate: transaction.exchangeRate ?? getBaseAmount(1, currency),
+            baseAmount: transaction.baseAmount ?? getBaseAmount(transaction.amount, currency),
+          };
+        })
+      );
+    } catch {
+      localStorage.removeItem("transactions");
+    }
+  }, [accounts]);
 
   useEffect(() => {
     localStorage.setItem("transactions", JSON.stringify(transactions));
@@ -92,11 +113,16 @@ export const TransactionsProvider = ({
     }
 
     const category = resolveCategory(data.categoryId);
+    const account = accounts.find((item) => item.id === data.accountId);
+    const currency = account?.currency ?? "ARS";
 
     const newTransaction: Transaction = {
       ...data,
       id: uuid(),
       category,
+      currency,
+      exchangeRate: getBaseAmount(1, currency),
+      baseAmount: getBaseAmount(data.amount, currency),
     };
 
     setTransactions((prev) => [newTransaction, ...prev]);
@@ -123,10 +149,21 @@ export const TransactionsProvider = ({
     }
 
     const category = resolveCategory(data.categoryId);
+    const account = accounts.find((item) => item.id === data.accountId);
+    const currency = account?.currency ?? "ARS";
 
     setTransactions((prev) =>
       prev.map((t) =>
-        t.id === id ? { ...t, ...data, category } : t
+        t.id === id
+          ? {
+              ...t,
+              ...data,
+              category,
+              currency,
+              exchangeRate: getBaseAmount(1, currency),
+              baseAmount: getBaseAmount(data.amount, currency),
+            }
+          : t
       )
     );
     return true;
@@ -146,6 +183,11 @@ export const TransactionsProvider = ({
   }: TransferInput) => {
     if (fromAccountId === toAccountId) return;
 
+    const fromAccount = accounts.find((account) => account.id === fromAccountId);
+    const toAccount = accounts.find((account) => account.id === toAccountId);
+    const fromCurrency = fromAccount?.currency ?? "ARS";
+    const toCurrency = toAccount?.currency ?? "ARS";
+
     const balance = getAccountBalance(fromAccountId);
 
     if (amount > balance) {
@@ -159,6 +201,9 @@ export const TransactionsProvider = ({
       type: "expense" as const,
     };
 
+    const baseAmount = getBaseAmount(amount, fromCurrency);
+    const destinationAmount = convertCurrency(amount, fromCurrency, toCurrency);
+
     const outTransaction: Transaction = {
       id: uuid(),
       amount,
@@ -167,16 +212,22 @@ export const TransactionsProvider = ({
       category: transferCategory,
       accountId: fromAccountId,
       date,
+      currency: fromCurrency,
+      exchangeRate: getBaseAmount(1, fromCurrency),
+      baseAmount,
     };
 
     const inTransaction: Transaction = {
       id: uuid(),
-      amount,
+      amount: destinationAmount,
       description: description || "Transferencia recibida",
       type: "income",
       category: transferCategory,
       accountId: toAccountId,
       date,
+      currency: toCurrency,
+      exchangeRate: getBaseAmount(1, toCurrency),
+      baseAmount,
     };
 
     setTransactions((prev) => [

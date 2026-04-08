@@ -8,6 +8,7 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import { Transaction } from "@/types/transaction";
+import { formatMoney, getTransactionBaseAmount } from "@/utils/currency";
 
 type Props = {
   transactions: Transaction[];
@@ -54,7 +55,7 @@ export default function CategoryChart({ transactions }: Props) {
 
         acc[key] = {
           name: t.category.name,
-          value: current.value + t.amount,
+          value: current.value + getTransactionBaseAmount(t),
         };
 
         return acc;
@@ -123,7 +124,7 @@ export default function CategoryChart({ transactions }: Props) {
                     </span>
 
                     <span className="ml-auto font-medium">
-                      ${entry.value}
+                      {formatMoney(entry.value)}
                     </span>
 
                     <span className="text-gray-400 text-xs">

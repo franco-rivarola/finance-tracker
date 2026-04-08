@@ -11,6 +11,7 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import { useMemo } from "react";
+import { formatMoney, getTransactionBaseAmount } from "@/utils/currency";
 
 type Props = {
   transactions: Transaction[];
@@ -26,7 +27,7 @@ export default function TopCategories({ transactions, top = 5 }: Props) {
       const current = map[key] || { name: t.category.name, value: 0 };
       map[key] = {
         name: t.category.name,
-        value: current.value + t.amount,
+        value: current.value + getTransactionBaseAmount(t),
       };
     });
 
@@ -49,7 +50,7 @@ export default function TopCategories({ transactions, top = 5 }: Props) {
             <YAxis type="category" dataKey="name" width={100} />
             <Tooltip
               formatter={(value) =>
-                typeof value === "number" ? `$${value.toLocaleString()}` : value
+                typeof value === "number" ? formatMoney(value) : value
               }
             />
             <Bar

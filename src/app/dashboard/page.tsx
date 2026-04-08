@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useTransactions } from "@/context/TransactionsContext";
+import { useAccounts } from "@/context/AccountsContext";
 
 import BalanceCard from "@/components/BalanceCard";
 import CategoryChart from "@/components/CategoryChart";
@@ -14,6 +15,10 @@ import AccountsSummary from "@/components/AccountsSummary";
 import BudgetsOverview from "@/components/BudgetsOverview";
 import DateFilter from "@/components/DateFilter";
 import TransferModal from "@/components/TransferModal";
+import { BASE_CURRENCY, formatMoney, getTransactionBaseAmount } from "@/utils/currency";
+import { useSavingGoals } from "@/context/SavingGoalsContext";
+import { getSavingGoalProgress } from "@/utils/finance";
+import Link from "next/link";
 
 type DateRange = {
   start: string;
@@ -22,6 +27,8 @@ type DateRange = {
 
 export default function DashboardPage() {
   const { transactions } = useTransactions();
+  const { accounts } = useAccounts();
+  const { savingGoals } = useSavingGoals();
 
   const [transferOpen, setTransferOpen] = useState(false);
   const [month, setMonth] = useState(new Date().toISOString().slice(0, 7));
@@ -40,11 +47,11 @@ export default function DashboardPage() {
 
   const income = filtered
     .filter((t) => t.type === "income")
-    .reduce((acc, t) => acc + t.amount, 0);
+    .reduce((acc, t) => acc + getTransactionBaseAmount(t), 0);
 
   const expense = filtered
     .filter((t) => t.type === "expense")
-    .reduce((acc, t) => acc + t.amount, 0);
+    .reduce((acc, t) => acc + getTransactionBaseAmount(t), 0);
 
   const balance = income - expense;
   const expenseOnly = filtered.filter(
@@ -67,7 +74,7 @@ export default function DashboardPage() {
           onClick={() => setTransferOpen(true)}
           className="bg-[#FFD600] text-black px-5 py-2  rounded-xl font-semibold hover:scale-105 transition"
         >
-          💸 Transferir
+          Transferir
         </button>
 
         <AccountsSummary transactions={filtered} />
@@ -78,9 +85,9 @@ export default function DashboardPage() {
       {/* CUENTAS */}
       {/* BALANCE */}
       <div className="grid md:grid-cols-3 gap-4">
-        <BalanceCard title="Ingresos" amount={income} />
-        <BalanceCard title="Gastos" amount={expense} />
-        <BalanceCard title="Balance" amount={balance} />
+        <BalanceCard title="Ingresos" amount={income} currency={BASE_CURRENCY} />
+        <BalanceCard title="Gastos" amount={expense} currency={BASE_CURRENCY} />
+        <BalanceCard title="Balance" amount={balance} currency={BASE_CURRENCY} />
       </div>
 
       {/* INSIGHTS */}
@@ -101,6 +108,40 @@ export default function DashboardPage() {
         <AnimatedCard>
           <MonthlyComparison transactions={filtered} />
         </AnimatedCard>
+      )}
+
+      {savingGoals.length > 0 && (
+        <div className="rounded-2xl border border-zinc-800 bg-zinc-900 p-4 space-y-4">
+          <div className="flex items-center justify-between gap-4">
+            <h2 className="text-xl font-semibold text-white">Metas de ahorro</h2>
+            <Link href="/accounts" className="text-sm font-semibold text-[#FFD600]">
+              Gestionar
+            </Link>
+          </div>
+
+          <div className="grid gap-4 md:grid-cols-2">
+            {savingGoals.slice(0, 4).map((goal) => {
+              const progress = getSavingGoalProgress(goal, accounts, transactions);
+              return (
+                <div key={goal.id} className="rounded-2xl bg-zinc-950 p-4">
+                  <div className="flex items-center justify-between gap-3">
+                    <div>
+                      <p className="font-semibold text-white">{goal.name}</p>
+                      <p className="mt-1 text-sm text-zinc-400">{goal.currency} · vence {goal.targetDate}</p>
+                    </div>
+                    <p className="text-sm font-semibold text-[#FFD600]">{progress.progress.toFixed(0)}%</p>
+                  </div>
+                  <div className="mt-3 h-2 rounded-full bg-zinc-800">
+                    <div className="h-2 rounded-full bg-[#FFD600]" style={{ width: `${progress.progress}%` }} />
+                  </div>
+                  <p className="mt-3 text-sm text-zinc-300">
+                    {formatMoney(progress.currentAmount, goal.currency)} de {formatMoney(goal.targetAmount, goal.currency)}
+                  </p>
+                </div>
+              );
+            })}
+          </div>
+        </div>
       )}
 
       {/*       <AnimatedCard>

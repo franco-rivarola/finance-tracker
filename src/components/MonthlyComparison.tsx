@@ -2,6 +2,7 @@
 
 import { Transaction } from "@/types/transaction";
 import { useMemo } from "react";
+import { getTransactionBaseAmount } from "@/utils/currency";
 
 type Props = {
   transactions: Transaction[];
@@ -17,7 +18,7 @@ export default function MonthlyComparison({ transactions }: Props) {
     const sumByMonth = (month: string, type: "income" | "expense") =>
       transactions
         .filter(t => t.date.startsWith(month) && t.type === type)
-        .reduce((sum, t) => sum + t.amount, 0);
+        .reduce((sum, t) => sum + getTransactionBaseAmount(t), 0);
 
     const currentIncome = sumByMonth(current, "income");
     const prevIncome = sumByMonth(prev, "income");

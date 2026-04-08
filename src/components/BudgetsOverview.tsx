@@ -4,6 +4,8 @@ import { useMemo } from "react";
 import { useBudgets } from "@/context/BudgetsContext";
 import { useCategories } from "@/context/CategoriesContext";
 import { Transaction } from "@/types/transaction";
+import { formatMoney } from "@/utils/currency";
+import { getBudgetAlertLabel, getBudgetAlertLevel, getBudgetAlertTone } from "@/utils/finance";
 
 type Props = {
   transactions: Transaction[];
@@ -28,7 +30,7 @@ export default function BudgetsOverview({ transactions, month }: Props) {
               transaction.type === "expense" &&
               transaction.category.id === budget.categoryId
           )
-          .reduce((total, transaction) => total + transaction.amount, 0);
+          .reduce((total, transaction) => total + transaction.baseAmount, 0);
 
         return {
           ...budget,
@@ -36,6 +38,7 @@ export default function BudgetsOverview({ transactions, month }: Props) {
             categoryNameById.get(budget.categoryId) || "Categoría eliminada",
           spent,
           progress: budget.amount === 0 ? 0 : (spent / budget.amount) * 100,
+          alertLevel: getBudgetAlertLevel(spent, budget.amount),
         };
       })
       .sort((a, b) => b.progress - a.progress)
@@ -57,14 +60,20 @@ export default function BudgetsOverview({ transactions, month }: Props) {
           return (
             <div key={row.id} className="space-y-2">
               <div className="flex items-center justify-between gap-3">
-                <p className="font-medium text-[#FFD600]">{row.categoryName}</p>
+                <div className="flex items-center gap-2">
+                  <p className="font-medium text-[#FFD600]">{row.categoryName}</p>
+                  {row.alertLevel !== "none" ? (
+                    <span className={`rounded-full px-2 py-1 text-[11px] font-semibold ${getBudgetAlertTone(row.alertLevel)}`}>
+                      {getBudgetAlertLabel(row.alertLevel)}
+                    </span>
+                  ) : null}
+                </div>
                 <p
                   className={`text-sm font-semibold ${
                     overBudget ? "text-rose-400" : "text-zinc-300"
                   }`}
                 >
-                  ${row.spent.toLocaleString("es-AR")} / $
-                  {row.amount.toLocaleString("es-AR")}
+                  {formatMoney(row.spent)} / {formatMoney(row.amount)}
                 </p>
               </div>
 

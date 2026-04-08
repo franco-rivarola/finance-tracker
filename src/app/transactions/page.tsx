@@ -10,6 +10,7 @@ import { TransactionInput, TransactionType } from "@/types/transaction";
 import { motion, AnimatePresence } from "framer-motion";
 import DeleteIcon from "@mui/icons-material/Delete";
 import EditIcon from "@mui/icons-material/Edit";
+import { BASE_CURRENCY, formatMoney, getTransactionBaseAmount } from "@/utils/currency";
 
 type DateRange = {
   start: string;
@@ -254,8 +255,8 @@ function TransactionsPageContent() {
                         {t.type === "income" ? "Ingreso" : "Gasto"}
                       </span>
 
-                      <p className="font-medium">
-                        {t.description || "Sin descripción"}
+                      <p className="text-base font-semibold">
+                        {t.category?.name || "Sin categoría"}
                       </p>
                     </div>
 
@@ -266,7 +267,7 @@ function TransactionsPageContent() {
                           : "text-rose-700/80"
                       }`}
                     >
-                      {t.category?.name} • {t.date}
+                      {t.description || "Sin descripción"} • {t.date}
                     </p>
                   </div>
 
@@ -278,8 +279,8 @@ function TransactionsPageContent() {
                           : "text-rose-700"
                       }`}
                     >
-                      {t.type === "income" ? "+" : "-"}$
-                      {t.amount.toLocaleString("es-AR")}
+                      {t.type === "income" ? "+" : "-"}
+                      {formatMoney(getTransactionBaseAmount(t), BASE_CURRENCY)}
                     </p>
 
                     <button
@@ -340,7 +341,7 @@ function TransactionsPageContent() {
 
                   <div className="flex items-center gap-3">
                     <p className="font-bold text-sky-700">
-                      ${transfer.amount.toLocaleString("es-AR")}
+                      {formatMoney(transfer.amount, BASE_CURRENCY)}
                     </p>
 
                     <button

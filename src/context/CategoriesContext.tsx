@@ -8,6 +8,7 @@ import { v4 as uuid } from "uuid";
 type CategoriesContextType = {
   categories: Category[];
   addCategory: (name: string, type: TransactionType) => void;
+  updateCategory: (id: string, name: string) => boolean;
   deleteCategory: (id: string) => void;
 };
 
@@ -27,12 +28,12 @@ export const CategoriesProvider = ({
 }: {
   children: React.ReactNode;
 }) => {
-  const [categories, setCategories] = useState<Category[]>(() => {
-    if (typeof window === "undefined") return DEFAULT_CATEGORIES;
+  const [categories, setCategories] = useState<Category[]>(DEFAULT_CATEGORIES);
 
+  useEffect(() => {
     const stored = localStorage.getItem(STORAGE_KEY);
 
-    if (!stored) return DEFAULT_CATEGORIES;
+    if (!stored) return;
 
     try {
       const parsed = JSON.parse(stored);
@@ -42,14 +43,12 @@ export const CategoriesProvider = ({
         parsed.length > 0 &&
         parsed.every(isValidCategory)
       ) {
-        return parsed;
+        setCategories(parsed);
       }
     } catch {
       localStorage.removeItem(STORAGE_KEY);
     }
-
-    return DEFAULT_CATEGORIES;
-  });
+  }, []);
 
   useEffect(() => {
     if (categories.length > 0) {
@@ -75,13 +74,41 @@ export const CategoriesProvider = ({
     ]);
   };
 
+  const updateCategory = (id: string, name: string) => {
+    const trimmed = name.trim();
+    if (!trimmed) return false;
+
+    const current = categories.find((category) => category.id === id);
+    if (!current) return false;
+
+    const exists = categories.some(
+      (category) =>
+        category.id !== id &&
+        category.name.toLowerCase() === trimmed.toLowerCase() &&
+        category.type === current.type
+    );
+
+    if (exists) {
+      alert("La categoría ya existe");
+      return false;
+    }
+
+    setCategories((prev) =>
+      prev.map((category) =>
+        category.id === id ? { ...category, name: trimmed } : category
+      )
+    );
+
+    return true;
+  };
+
   const deleteCategory = (id: string) => {
     setCategories((prev) => prev.filter((c) => c.id !== id));
   };
 
   return (
     <CategoriesContext.Provider
-      value={{ categories, addCategory, deleteCategory }}
+      value={{ categories, addCategory, updateCategory, deleteCategory }}
     >
       {children}
     </CategoriesContext.Provider>

@@ -5,6 +5,7 @@ import { TransactionInput } from "@/types/transaction";
 import { useAccounts } from "@/context/AccountsContext";
 import { useTransactions } from "@/context/TransactionsContext";
 import { useCategories } from "@/context/CategoriesContext";
+import { formatMoney } from "@/utils/currency";
 
 type Props = {
   initialData?: TransactionInput;
@@ -41,6 +42,7 @@ export default function TransactionForm({
   );
 
   const selectedAccountBalance = getAccountBalance(form.accountId);
+  const selectedAccount = accounts.find((account) => account.id === form.accountId);
   const availableBalance = useMemo(() => {
     if (!form.accountId) return 0;
 
@@ -144,7 +146,7 @@ export default function TransactionForm({
         <p className="text-sm text-gray-500">
           Disponible:{" "}
           <span className="font-semibold text-black">
-            ${availableBalance.toLocaleString("es-AR")}
+            {formatMoney(availableBalance, selectedAccount?.currency ?? "ARS")}
           </span>
         </p>
       )}
