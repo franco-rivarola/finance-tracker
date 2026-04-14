@@ -6,4 +6,5 @@ export type Category = {
   name: string;
   type: CategoryType;
   icon?: string;
+  isSystem?: boolean;
 };

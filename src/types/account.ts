@@ -6,4 +6,5 @@ export type Account = {
   name: string;
   type: AccountType;
   currency: CurrencyCode;
+  isSystem?: boolean;
 };

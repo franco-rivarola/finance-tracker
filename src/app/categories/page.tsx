@@ -23,10 +23,11 @@ export default function CategoriesPage() {
     (c) => c.type === "income"
   );
 
-  const handleAdd = () => {
+  const handleAdd = async () => {
     if (!name.trim()) return;
 
-    addCategory(name.trim(), type);
+    const ok = await addCategory(name.trim(), type);
+    if (!ok) return;
     setName("");
     setType("expense");
     setCreateOpen(false);
@@ -37,10 +38,10 @@ export default function CategoriesPage() {
     setEditingName(currentName);
   };
 
-  const handleSaveEdit = () => {
+  const handleSaveEdit = async () => {
     if (!editingId) return;
 
-    const ok = updateCategory(editingId, editingName);
+    const ok = await updateCategory(editingId, editingName);
     if (!ok) return;
 
     setEditingId(null);
@@ -98,7 +99,7 @@ export default function CategoriesPage() {
                   <div className="flex gap-2">
                     <button
                       onClick={handleSaveEdit}
-                      className="flex-1 rounded-xl bg-[#FFD600] px-3 py-2 text-sm font-semibold text-black transition hover:brightness-95"
+                      className="flex-1 rounded-xl bg-[#FACC15] px-3 py-2 text-sm font-semibold text-black transition hover:brightness-95"
                     >
                       Guardar
                     </button>
@@ -132,7 +133,7 @@ export default function CategoriesPage() {
                     <button
                       onClick={() => {
                         if (confirm("¿Eliminar categoría?")) {
-                          deleteCategory(category.id);
+                          void deleteCategory(category.id);
                         }
                       }}
                       className="rounded-xl bg-rose-50 px-3 py-2 text-sm font-semibold text-rose-600 transition hover:bg-rose-100"
@@ -155,7 +156,7 @@ export default function CategoriesPage() {
         <h1 className="text-3xl font-bold">Categorías</h1>
         <button
           onClick={() => setCreateOpen(true)}
-          className="flex h-11 w-11 items-center justify-center rounded-full bg-[#FFD600] text-black transition hover:brightness-95"
+          className="flex h-11 w-11 items-center justify-center rounded-full bg-[#FACC15] text-black transition hover:brightness-95"
           aria-label="Agregar categoría"
         >
           <AddIcon fontSize="small" />
@@ -197,7 +198,7 @@ export default function CategoriesPage() {
 
               <button
                 onClick={handleAdd}
-                className="mx-auto block rounded-xl bg-[#FFD600] px-3 py-2 text-sm font-semibold text-black transition hover:brightness-95"
+                className="mx-auto block rounded-xl bg-[#FACC15] px-3 py-2 text-sm font-semibold text-black transition hover:brightness-95"
               >
                 Agregar
               </button>

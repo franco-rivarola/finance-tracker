@@ -56,7 +56,7 @@ export default function BudgetsPage() {
       .sort((a, b) => b.month.localeCompare(a.month));
   }, [budgets, expenseCategories, transactions]);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     const amount = Number(form.amount);
@@ -69,8 +69,8 @@ export default function BudgetsPage() {
     };
 
     const created = editingId
-      ? updateBudget(editingId, payload)
-      : addBudget(payload);
+      ? await updateBudget(editingId, payload)
+      : await addBudget(payload);
 
     if (!created) return;
 
@@ -101,7 +101,7 @@ export default function BudgetsPage() {
             resetForm();
             setModalOpen(true);
           }}
-          className="flex h-11 w-11 items-center justify-center rounded-full bg-[#FFD600] text-black transition hover:brightness-95"
+          className="flex h-11 w-11 items-center justify-center rounded-full bg-[#FACC15] text-black transition hover:brightness-95"
           aria-label="Agregar presupuesto"
         >
           <AddIcon fontSize="small" />
@@ -148,7 +148,7 @@ export default function BudgetsPage() {
               <div className="mt-4 h-2 overflow-hidden rounded-full bg-zinc-200">
                 <div
                   className={`h-full rounded-full ${
-                    overBudget ? "bg-rose-500" : "bg-[#FFD600]"
+                    overBudget ? "bg-rose-500" : "bg-[#FACC15]"
                   }`}
                   style={{ width: `${Math.min(progress, 100)}%` }}
                 />
@@ -171,7 +171,7 @@ export default function BudgetsPage() {
                 </button>
 
                 <button
-                  onClick={() => deleteBudget(budget.id)}
+                  onClick={() => void deleteBudget(budget.id)}
                   className="flex-1 rounded-xl bg-rose-50 px-3 py-2 text-sm font-semibold text-rose-600 transition hover:bg-rose-100"
                 >
                   Eliminar
@@ -250,7 +250,7 @@ export default function BudgetsPage() {
               <div className="flex justify-center gap-2">
                 <button
                   type="submit"
-                  className="rounded-xl bg-[#FFD600] px-3 py-2 text-sm font-semibold text-black transition hover:brightness-95"
+                  className="rounded-xl bg-[#FACC15] px-3 py-2 text-sm font-semibold text-black transition hover:brightness-95"
                 >
                   {editingId ? "Guardar cambios" : "Guardar presupuesto"}
                 </button>

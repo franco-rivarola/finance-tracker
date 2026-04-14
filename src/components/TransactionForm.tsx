@@ -9,7 +9,7 @@ import { formatMoney } from "@/utils/currency";
 
 type Props = {
   initialData?: TransactionInput;
-  onSubmit: (data: TransactionInput) => void;
+  onSubmit: (data: TransactionInput) => Promise<void>;
   submitText?: string;
 };
 
@@ -77,7 +77,7 @@ export default function TransactionForm({
     return Number(value.replace(/\./g, ""));
   }
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (
@@ -89,7 +89,7 @@ export default function TransactionForm({
       return;
     }
 
-    onSubmit(form);
+    await onSubmit(form);
   };
 
   return (
@@ -206,7 +206,7 @@ export default function TransactionForm({
           !form.accountId ||
           insufficientFunds
         }
-        className="w-full bg-[#FFD600] text-white py-3 rounded-xl font-semibold shadow hover:bg-blue-700 transition disabled:opacity-40"
+        className="w-full rounded-xl bg-[#FACC15] py-3 font-semibold text-[#020617] shadow transition hover:brightness-95 disabled:opacity-40"
       >
         {submitText}
       </button>

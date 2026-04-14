@@ -6,6 +6,7 @@ export type Category = {
   id: string;
   name: string;
   type: TransactionType;
+  isSystem?: boolean;
 };
 
 export type Transaction = {

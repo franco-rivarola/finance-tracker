@@ -1,13 +1,8 @@
+import { BASE_CURRENCY, EXCHANGE_RATES } from "@/constants/finance";
 import { CurrencyCode } from "@/types/account";
 import { Transaction } from "@/types/transaction";
 
-export const BASE_CURRENCY: CurrencyCode = "ARS";
-
-export const EXCHANGE_RATES: Record<CurrencyCode, number> = {
-  ARS: 1,
-  USD: 1100,
-  EUR: 1250,
-};
+export { BASE_CURRENCY, EXCHANGE_RATES };
 
 export const formatMoney = (amount: number, currency: CurrencyCode = BASE_CURRENCY) =>
   new Intl.NumberFormat("es-AR", {

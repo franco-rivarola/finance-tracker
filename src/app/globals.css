@@ -1,50 +1,61 @@
 /* 1. Cambia las directivas antiguas por el nuevo import de v4 */
 @import "tailwindcss";
 
-/* 2. Todo lo demás se mantiene igual, pero ahora v4 lo reconocerá */
-
-/* 🌐 Fondo general */
-body {
-  @apply bg-gray-100 text-gray-800;
+:root {
+  --app-bg: #020617;
+  --app-surface: #181b20;
+  --app-border: #2b313a;
+  --app-text: #f8fafc;
+  --app-muted: #94a3b8;
+  --app-brand: #facc15;
 }
 
-/* 🧱 Container */
+body {
+  background: var(--app-bg);
+  color: var(--app-text);
+}
+
 .container {
   @apply max-w-5xl mx-auto px-4;
 }
 
-/* 🧾 Card */
 .card {
-  @apply bg-white rounded-2xl shadow p-5;
+  background: var(--app-surface);
+  border: 1px solid var(--app-border);
+  @apply rounded-2xl p-5 shadow;
 }
 
-/* 🔘 Botones */
 .btn {
   @apply px-4 py-2 rounded-xl font-medium transition;
 }
 
 .btn-primary {
-  @apply bg-blue-500 text-white hover:bg-blue-600;
+  background: var(--app-brand);
+  color: #020617;
 }
 
 .btn-danger {
   @apply bg-red-500 text-white hover:bg-red-600;
 }
 
-/* 🧾 Inputs */
 .input {
-  @apply border rounded-xl px-3 py-2 w-full focus:outline-none focus:ring-2 focus:ring-blue-400;
+  background: var(--app-surface);
+  border: 1px solid var(--app-border);
+  color: var(--app-text);
+  @apply w-full rounded-xl px-3 py-2 focus:outline-none;
 }
 
-/* 🧱 Tabla */
 .table {
   @apply w-full border-collapse;
 }
 
 .table th {
-  @apply text-left text-gray-500 border-b pb-2;
+  color: var(--app-muted);
+  border-bottom: 1px solid var(--app-border);
+  @apply pb-2 text-left;
 }
 
 .table td {
-  @apply py-3 border-b;
+  border-bottom: 1px solid var(--app-border);
+  @apply py-3;
 }

@@ -40,8 +40,8 @@ export default function AccountsPage() {
     [accounts]
   );
 
-  const handleAdd = () => {
-    const created = addAccount(name, "bank", currency);
+  const handleAdd = async () => {
+    const created = await addAccount(name, "bank", currency);
     if (!created) return;
 
     setName("");
@@ -55,10 +55,10 @@ export default function AccountsPage() {
     setEditingCurrency(currentCurrency);
   };
 
-  const handleSaveEdit = () => {
+  const handleSaveEdit = async () => {
     if (!editingId) return;
 
-    const updated = updateAccount(editingId, editingName, editingCurrency);
+    const updated = await updateAccount(editingId, editingName, editingCurrency);
     if (!updated) return;
 
     setEditingId(null);
@@ -66,17 +66,18 @@ export default function AccountsPage() {
     setEditingCurrency("ARS");
   };
 
-  const handleAddGoal = () => {
+  const handleAddGoal = async () => {
     const amount = Number(goalForm.targetAmount);
     if (!goalForm.name.trim() || !goalForm.accountId || !amount) return;
 
-    addSavingGoal({
+    const created = await addSavingGoal({
       name: goalForm.name.trim(),
       targetAmount: amount,
       accountId: goalForm.accountId,
       targetDate: goalForm.targetDate,
       currency: goalForm.currency,
     });
+    if (!created) return;
 
     setGoalForm({
       name: "",
@@ -95,13 +96,13 @@ export default function AccountsPage() {
         <div className="flex items-center gap-2">
           <button
             onClick={() => setTransferOpen(true)}
-            className="rounded-xl border border-zinc-200 px-3 py-2 text-sm font-semibold text-zinc-700 transition hover:bg-zinc-50"
+            className="rounded-xl border border-zinc-700 bg-zinc-900 px-4 py-2 text-sm font-semibold text-zinc-100 transition hover:border-zinc-500 hover:bg-zinc-800"
           >
             Transferir
           </button>
           <button
             onClick={() => setCreateOpen(true)}
-            className="flex h-11 w-11 items-center justify-center rounded-full bg-[#FFD600] text-black transition hover:brightness-95"
+            className="flex h-11 w-11 items-center justify-center rounded-full bg-[#FACC15] text-black transition hover:brightness-95"
             aria-label="Agregar cuenta"
           >
             <AddIcon fontSize="small" />
@@ -118,12 +119,12 @@ export default function AccountsPage() {
             {editingId === account.id ? (
               <div className="space-y-3">
                 <input
-                  className="w-full rounded-xl border border-zinc-200 bg-zinc-50 px-4 py-3 outline-none transition focus:border-zinc-400 focus:bg-white"
+                  className="w-full rounded-xl border border-zinc-200 bg-zinc-50 px-4 py-3 text-zinc-950 outline-none transition focus:border-zinc-400 focus:bg-white"
                   value={editingName}
                   onChange={(e) => setEditingName(e.target.value)}
                 />
                 <select
-                  className="w-full rounded-xl border border-zinc-200 bg-zinc-50 px-4 py-3 outline-none transition focus:border-zinc-400 focus:bg-white"
+                  className="w-full rounded-xl border border-zinc-200 bg-zinc-50 px-4 py-3 text-zinc-950 outline-none transition focus:border-zinc-400 focus:bg-white"
                   value={editingCurrency}
                   onChange={(e) => setEditingCurrency(e.target.value as CurrencyCode)}
                 >
@@ -134,7 +135,7 @@ export default function AccountsPage() {
                 <div className="flex gap-2">
                   <button
                     onClick={handleSaveEdit}
-                    className="flex-1 rounded-xl bg-[#FFD600] px-3 py-2 text-sm font-semibold text-black transition hover:brightness-95"
+                    className="flex-1 rounded-xl bg-[#FACC15] px-3 py-2 text-sm font-semibold text-black transition hover:brightness-95"
                   >
                     Guardar
                   </button>
@@ -180,7 +181,7 @@ export default function AccountsPage() {
                     }
 
                     if (!confirm("¿Eliminar cuenta?")) return;
-                    deleteAccount(account.id);
+                    void deleteAccount(account.id);
                   }}
                   className="flex-1 rounded-xl bg-rose-50 px-3 py-2 text-sm font-semibold text-rose-600 transition hover:bg-rose-100"
                 >
@@ -200,7 +201,7 @@ export default function AccountsPage() {
           </div>
           <button
             onClick={() => setGoalOpen(true)}
-            className="flex h-11 w-11 items-center justify-center rounded-full bg-[#FFD600] text-black transition hover:brightness-95"
+            className="flex h-11 w-11 items-center justify-center rounded-full bg-[#FACC15] text-black transition hover:brightness-95"
             aria-label="Agregar meta"
           >
             <AddIcon fontSize="small" />
@@ -223,14 +224,14 @@ export default function AccountsPage() {
                       </p>
                     </div>
                     <button
-                      onClick={() => deleteSavingGoal(goal.id)}
+                      onClick={() => void deleteSavingGoal(goal.id)}
                       className="rounded-xl bg-rose-50 px-3 py-2 text-sm font-semibold text-rose-600 transition hover:bg-rose-100"
                     >
                       Eliminar
                     </button>
                   </div>
                   <div className="mt-4 h-2 rounded-full bg-zinc-200">
-                    <div className="h-2 rounded-full bg-[#FFD600]" style={{ width: `${progress.progress}%` }} />
+                    <div className="h-2 rounded-full bg-[#FACC15]" style={{ width: `${progress.progress}%` }} />
                   </div>
                   <div className="mt-3 flex flex-wrap items-center justify-between gap-3 text-sm">
                     <span className="font-medium text-zinc-700">
@@ -283,7 +284,7 @@ export default function AccountsPage() {
 
               <button
                 onClick={handleAdd}
-                className="mx-auto block rounded-xl bg-[#FFD600] px-3 py-2 text-sm font-semibold text-black transition hover:brightness-95"
+                className="mx-auto block rounded-xl bg-[#FACC15] px-3 py-2 text-sm font-semibold text-black transition hover:brightness-95"
               >
                 Agregar
               </button>
@@ -347,7 +348,7 @@ export default function AccountsPage() {
               />
               <button
                 onClick={handleAddGoal}
-                className="mx-auto block rounded-xl bg-[#FFD600] px-3 py-2 text-sm font-semibold text-black transition hover:brightness-95"
+                className="mx-auto block rounded-xl bg-[#FACC15] px-3 py-2 text-sm font-semibold text-black transition hover:brightness-95"
               >
                 Agregar
               </button>

@@ -35,7 +35,7 @@ export default function TransferModal({ open, onClose }: Props) {
       ? convertCurrency(amountNumber, fromAccount.currency, toAccount.currency)
       : 0;
 
-  const handleTransfer = () => {
+  const handleTransfer = async () => {
     if (
       !amountNumber ||
       !form.fromAccountId ||
@@ -44,7 +44,7 @@ export default function TransferModal({ open, onClose }: Props) {
       insufficient
     ) return;
 
-    transferBetweenAccounts({
+    await transferBetweenAccounts({
       ...form,
       amount: amountNumber,
     });
@@ -60,12 +60,14 @@ export default function TransferModal({ open, onClose }: Props) {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
+          onClick={onClose}
         >
           <motion.div
+            onClick={(event) => event.stopPropagation()}
             initial={{ scale: 0.95, opacity: 0, y: 30 }}
             animate={{ scale: 1, opacity: 1, y: 0 }}
             exit={{ scale: 0.95, opacity: 0 }}
-            className="bg-white w-full max-w-md rounded-3xl p-6 shadow-2xl space-y-5 border border-gray-200"
+            className="w-full max-w-md space-y-5 rounded-3xl border border-zinc-200 bg-white p-6 text-black shadow-2xl"
           >
             <div className="flex items-center justify-between gap-4">
               <h2 className="text-xl font-bold text-black">
@@ -73,7 +75,7 @@ export default function TransferModal({ open, onClose }: Props) {
               </h2>
               <button
                 onClick={onClose}
-                className="flex h-10 w-10 items-center justify-center rounded-full border border-gray-300 text-gray-600 transition hover:bg-gray-100"
+                className="flex h-10 w-10 items-center justify-center rounded-full border border-zinc-200 text-zinc-700 transition hover:bg-zinc-50"
                 aria-label="Cerrar modal"
               >
                 <CloseIcon fontSize="small" />
@@ -86,7 +88,7 @@ export default function TransferModal({ open, onClose }: Props) {
               onChange={(e) =>
                 setForm({ ...form, fromAccountId: e.target.value })
               }
-              className="w-full p-3 rounded-xl border border-gray-300 focus:border-yellow-500 outline-none"
+              className="w-full rounded-xl border border-zinc-200 bg-zinc-50 p-3 text-black outline-none transition focus:border-zinc-400 focus:bg-white"
             >
               <option value="">Desde cuenta</option>
               {accounts.map((a) => (
@@ -98,7 +100,7 @@ export default function TransferModal({ open, onClose }: Props) {
 
             {/* SALDO */}
             {form.fromAccountId && (
-              <p className="text-sm text-gray-500">
+              <p className="text-sm text-zinc-500">
                 Disponible:{" "}
                 <span className="font-semibold text-black">
                   {formatMoney(selectedBalance, fromAccount?.currency ?? "ARS")}
@@ -112,7 +114,7 @@ export default function TransferModal({ open, onClose }: Props) {
               onChange={(e) =>
                 setForm({ ...form, toAccountId: e.target.value })
               }
-              className="w-full p-3 rounded-xl border border-gray-300 focus:border-yellow-500 outline-none"
+              className="w-full rounded-xl border border-zinc-200 bg-zinc-50 p-3 text-black outline-none transition focus:border-zinc-400 focus:bg-white"
             >
               <option value="">Hacia cuenta</option>
               {accounts.map((a) => (
@@ -134,7 +136,7 @@ export default function TransferModal({ open, onClose }: Props) {
                   setForm({ ...form, amount: value });
                 }
               }}
-              className="w-full p-3 rounded-xl border border-gray-300 focus:border-yellow-500 outline-none"
+              className="w-full rounded-xl border border-zinc-200 bg-zinc-50 p-3 text-black outline-none transition focus:border-zinc-400 focus:bg-white"
             />
 
             {/* ERROR */}
@@ -160,7 +162,7 @@ export default function TransferModal({ open, onClose }: Props) {
               onChange={(e) =>
                 setForm({ ...form, date: e.target.value })
               }
-              className="w-full p-3 rounded-xl border border-gray-300 focus:border-yellow-500 outline-none"
+              className="w-full rounded-xl border border-zinc-200 bg-zinc-50 p-3 text-black outline-none transition focus:border-zinc-400 focus:bg-white"
             />
 
             {/* BOTÓN PRINCIPAL */}
@@ -169,8 +171,8 @@ export default function TransferModal({ open, onClose }: Props) {
               disabled={insufficient}
               className={`w-full py-3 rounded-xl font-semibold transition ${
                 insufficient
-                  ? "bg-gray-300 text-gray-500"
-                  : "bg-yellow-400 text-black hover:bg-yellow-500"
+                  ? "bg-zinc-200 text-zinc-500"
+                  : "bg-[#FACC15] text-black hover:brightness-95"
               }`}
             >
               Transferir
@@ -179,7 +181,7 @@ export default function TransferModal({ open, onClose }: Props) {
             {/* CANCELAR */}
             <button
               onClick={onClose}
-              className="w-full py-2 rounded-xl border border-gray-300 text-gray-600 hover:bg-gray-100 transition"
+              className="w-full rounded-xl border border-zinc-200 py-3 text-zinc-700 transition hover:bg-zinc-50"
             >
               Cancelar
             </button>

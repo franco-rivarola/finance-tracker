@@ -1,6 +1,14 @@
 # Dependencias
 node_modules/
+.env
+.env.local
+.env.*.local
 
 # Next.js build output
 .next/
 out/
+
+# Expo / React Native
+.expo/
+dist/
+mobile/

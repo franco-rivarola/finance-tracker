@@ -155,7 +155,7 @@ function TransactionsPageContent() {
               }
               className={`rounded-2xl px-5 py-3 text-base font-semibold transition ${
                 activeTab === tab.id
-                  ? "bg-[#FFD600] text-black shadow-lg shadow-yellow-500/20"
+                  ? "bg-[#FACC15] text-black shadow-lg shadow-yellow-500/20"
                   : "bg-zinc-900 text-zinc-300 border border-zinc-800"
               }`}
             >
@@ -169,9 +169,10 @@ function TransactionsPageContent() {
             setEditingId(null);
             setOpen(true);
           }}
-          className="bg-[#FFD600] text-black px-5 py-2 rounded-xl font-semibold hover:scale-105 transition"
+          className="flex h-11 w-11 items-center justify-center rounded-full bg-[#FACC15] text-black transition hover:brightness-95"
+          aria-label="Agregar movimiento"
         >
-          + Nueva
+          <span className="text-2xl leading-none">+</span>
         </button>
       </div>
 
@@ -192,7 +193,7 @@ function TransactionsPageContent() {
                   onClick={() => setType(t)}
                   className={`px-4 py-1 rounded-full text-sm transition ${
                     type === t
-                      ? "bg-[#FFD600] text-black"
+                      ? "bg-[#FACC15] text-black"
                       : "bg-zinc-800 text-white"
                   }`}
                 >
@@ -235,7 +236,7 @@ function TransactionsPageContent() {
                   transition={{ duration: 0.2 }}
                   drag="x"
                   onDragEnd={(e, info) => {
-                    if (info.offset.x < -120) deleteTransaction(t.id);
+                    if (info.offset.x < -120) void deleteTransaction(t.id);
                   }}
                   className={`rounded-2xl border p-4 flex justify-between items-center ${
                     t.type === "income"
@@ -294,7 +295,7 @@ function TransactionsPageContent() {
                     </button>
 
                     <button
-                      onClick={() => deleteTransaction(t.id)}
+                      onClick={() => void deleteTransaction(t.id)}
                       className="text-zinc-500 hover:text-black"
                     >
                       <DeleteIcon fontSize="small" />
@@ -346,8 +347,8 @@ function TransactionsPageContent() {
 
                     <button
                       onClick={() => {
-                        if (transfer.expenseId) deleteTransaction(transfer.expenseId);
-                        if (transfer.incomeId) deleteTransaction(transfer.incomeId);
+                        if (transfer.expenseId) void deleteTransaction(transfer.expenseId);
+                        if (transfer.incomeId) void deleteTransaction(transfer.incomeId);
                       }}
                       className="text-zinc-500 hover:text-black"
                     >
@@ -366,7 +367,7 @@ function TransactionsPageContent() {
         onClose={() => setOpen(false)}
         title={editingId ? "Editar transacción" : "Nueva transacción"}
         initialData={editingData}
-        onSubmit={(data) => {
+        onSubmit={async (data) => {
           if (editingId) return updateTransaction(editingId, data);
           return addTransaction(data);
         }}

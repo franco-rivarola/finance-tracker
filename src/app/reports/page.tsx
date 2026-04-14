@@ -41,7 +41,8 @@ export default function ReportsPage() {
       transaction.type === "expense" && transaction.category.id !== "transfer"
   );
   const incomeTransactions = filtered.filter(
-    (transaction) => transaction.type === "income"
+    (transaction) =>
+      transaction.type === "income" && transaction.category.id !== "transfer"
   );
 
   const income = incomeTransactions.reduce(
@@ -103,7 +104,10 @@ export default function ReportsPage() {
   }, [previousWindow, transactions]);
 
   const previousIncome = previousTransactions
-    .filter((transaction) => transaction.type === "income")
+    .filter(
+      (transaction) =>
+        transaction.type === "income" && transaction.category.id !== "transfer"
+    )
     .reduce((total, transaction) => total + getTransactionBaseAmount(transaction), 0);
   const previousExpense = previousTransactions
     .filter(
@@ -156,7 +160,10 @@ export default function ReportsPage() {
         );
 
         const incomeTotal = accountTransactions
-          .filter((transaction) => transaction.type === "income")
+          .filter(
+            (transaction) =>
+              transaction.type === "income" && transaction.category.id !== "transfer"
+          )
           .reduce((total, transaction) => total + getTransactionBaseAmount(transaction), 0);
 
         const expenseTotal = accountTransactions
@@ -184,7 +191,9 @@ export default function ReportsPage() {
       const currentMonth = transaction.date.slice(0, 7);
       const current = map.get(currentMonth) ?? { income: 0, expense: 0 };
 
-      if (transaction.type === "income") current.income += getTransactionBaseAmount(transaction);
+      if (transaction.type === "income" && transaction.category.id !== "transfer") {
+        current.income += getTransactionBaseAmount(transaction);
+      }
       if (
         transaction.type === "expense" &&
         transaction.category.id !== "transfer"
@@ -273,12 +282,6 @@ export default function ReportsPage() {
           <h1 className="text-3xl font-bold">Reportes</h1>
         </div>
 
-        <button
-          onClick={exportCsv}
-          className="rounded-xl bg-[#FFD600] px-4 py-2 font-semibold text-black"
-        >
-          Exportar CSV
-        </button>
       </div>
 
       <div className="rounded-2xl border border-zinc-800 bg-zinc-900 p-4">
@@ -297,7 +300,7 @@ export default function ReportsPage() {
               key={finding.title}
               className="rounded-2xl border border-zinc-800 bg-zinc-950 p-4"
             >
-              <p className="text-sm text-[#FFD600]">{finding.title}</p>
+              <p className="text-sm text-[#FACC15]">{finding.title}</p>
               <p className="mt-2 text-base font-medium text-white">
                 {finding.text}
               </p>
@@ -360,10 +363,10 @@ export default function ReportsPage() {
             <table className="w-full text-left text-sm">
               <thead className="text-zinc-400">
                 <tr className="border-b border-zinc-800">
-                  <th className="pb-3 text-[#FFD600] font-medium">Categoría</th>
-                  <th className="pb-3 text-[#FFD600] font-medium">Gasto</th>
-                  <th className="pb-3 text-[#FFD600] font-medium">Participación</th>
-                  <th className="pb-3 text-[#FFD600] font-medium">Movimientos</th>
+                  <th className="pb-3 font-medium text-[#FACC15]">Categoría</th>
+                  <th className="pb-3 font-medium text-[#FACC15]">Gasto</th>
+                  <th className="pb-3 font-medium text-[#FACC15]">Participación</th>
+                  <th className="pb-3 font-medium text-[#FACC15]">Movimientos</th>
                 </tr>
               </thead>
               <tbody>
@@ -403,7 +406,7 @@ export default function ReportsPage() {
                 className="rounded-xl border border-zinc-800 bg-zinc-950 p-4"
               >
                 <div className="flex items-center justify-between gap-3">
-                  <p className="font-medium text-[#FFD600]">{account.name}</p>
+                  <p className="font-medium text-[#FACC15]">{account.name}</p>
                   <p
                     className={`font-semibold ${
                       account.balance >= 0 ? "text-emerald-400" : "text-rose-400"
@@ -429,10 +432,10 @@ export default function ReportsPage() {
           <table className="w-full text-left text-sm">
             <thead className="text-zinc-400">
               <tr className="border-b border-zinc-800">
-                <th className="pb-3 text-[#FFD600] font-medium">Mes</th>
-                <th className="pb-3 text-[#FFD600] font-medium">Ingresos</th>
-                <th className="pb-3 text-[#FFD600] font-medium">Gastos</th>
-                <th className="pb-3 text-[#FFD600] font-medium">Balance</th>
+                <th className="pb-3 font-medium text-[#FACC15]">Mes</th>
+                <th className="pb-3 font-medium text-[#FACC15]">Ingresos</th>
+                <th className="pb-3 font-medium text-[#FACC15]">Gastos</th>
+                <th className="pb-3 font-medium text-[#FACC15]">Balance</th>
               </tr>
             </thead>
             <tbody>

@@ -72,7 +72,7 @@ export default function DashboardPage() {
       <div className="space-y-4 bg-zinc-900 p-4 rounded-2xl border border-zinc-800">
         <button
           onClick={() => setTransferOpen(true)}
-          className="bg-[#FFD600] text-black px-5 py-2  rounded-xl font-semibold hover:scale-105 transition"
+          className="rounded-xl bg-[#FACC15] px-5 py-2 font-semibold text-black transition hover:scale-105"
         >
           Transferir
         </button>
@@ -114,7 +114,7 @@ export default function DashboardPage() {
         <div className="rounded-2xl border border-zinc-800 bg-zinc-900 p-4 space-y-4">
           <div className="flex items-center justify-between gap-4">
             <h2 className="text-xl font-semibold text-white">Metas de ahorro</h2>
-            <Link href="/accounts" className="text-sm font-semibold text-[#FFD600]">
+            <Link href="/accounts" className="text-sm font-semibold text-[#FACC15]">
               Gestionar
             </Link>
           </div>
@@ -129,10 +129,10 @@ export default function DashboardPage() {
                       <p className="font-semibold text-white">{goal.name}</p>
                       <p className="mt-1 text-sm text-zinc-400">{goal.currency} · vence {goal.targetDate}</p>
                     </div>
-                    <p className="text-sm font-semibold text-[#FFD600]">{progress.progress.toFixed(0)}%</p>
+                    <p className="text-sm font-semibold text-[#FACC15]">{progress.progress.toFixed(0)}%</p>
                   </div>
                   <div className="mt-3 h-2 rounded-full bg-zinc-800">
-                    <div className="h-2 rounded-full bg-[#FFD600]" style={{ width: `${progress.progress}%` }} />
+                    <div className="h-2 rounded-full bg-[#FACC15]" style={{ width: `${progress.progress}%` }} />
                   </div>
                   <p className="mt-3 text-sm text-zinc-300">
                     {formatMoney(progress.currentAmount, goal.currency)} de {formatMoney(goal.targetAmount, goal.currency)}

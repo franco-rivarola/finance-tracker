@@ -61,7 +61,7 @@ export default function BudgetsOverview({ transactions, month }: Props) {
             <div key={row.id} className="space-y-2">
               <div className="flex items-center justify-between gap-3">
                 <div className="flex items-center gap-2">
-                  <p className="font-medium text-[#FFD600]">{row.categoryName}</p>
+                  <p className="font-medium text-[#FACC15]">{row.categoryName}</p>
                   {row.alertLevel !== "none" ? (
                     <span className={`rounded-full px-2 py-1 text-[11px] font-semibold ${getBudgetAlertTone(row.alertLevel)}`}>
                       {getBudgetAlertLabel(row.alertLevel)}
@@ -80,7 +80,7 @@ export default function BudgetsOverview({ transactions, month }: Props) {
               <div className="h-2 overflow-hidden rounded-full bg-zinc-800">
                 <div
                   className={`h-full rounded-full ${
-                    overBudget ? "bg-rose-500" : "bg-[#FFD600]"
+                    overBudget ? "bg-rose-500" : "bg-[#FACC15]"
                   }`}
                   style={{ width: `${Math.min(row.progress, 100)}%` }}
                 />

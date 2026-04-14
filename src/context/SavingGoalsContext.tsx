@@ -1,66 +1,29 @@
 "use client";
 
-import { createContext, useContext, useEffect, useState } from "react";
-import { SavingGoal } from "@/types/saving-goal";
-import { v4 as uuid } from "uuid";
+import { createContext, useContext } from "react";
+import type { SavingGoal } from "@/types/saving-goal";
 
-type SavingGoalsContextType = {
+type SavingGoalsContextValue = {
   savingGoals: SavingGoal[];
-  addSavingGoal: (data: Omit<SavingGoal, "id">) => SavingGoal;
-  updateSavingGoal: (id: string, data: Omit<SavingGoal, "id">) => boolean;
-  deleteSavingGoal: (id: string) => void;
+  addSavingGoal: (data: Omit<SavingGoal, "id">) => Promise<SavingGoal | null>;
+  updateSavingGoal: (id: string, data: Omit<SavingGoal, "id">) => Promise<boolean>;
+  deleteSavingGoal: (id: string) => Promise<void>;
 };
 
-const SavingGoalsContext = createContext<SavingGoalsContextType | null>(null);
-const STORAGE_KEY = "saving-goals";
+const SavingGoalsContext = createContext<SavingGoalsContextValue | null>(null);
 
-export function SavingGoalsProvider({ children }: { children: React.ReactNode }) {
-  const [savingGoals, setSavingGoals] = useState<SavingGoal[]>([]);
-
-  useEffect(() => {
-    const stored = localStorage.getItem(STORAGE_KEY);
-    if (!stored) return;
-
-    try {
-      const parsed = JSON.parse(stored) as SavingGoal[];
-      if (Array.isArray(parsed)) {
-        setSavingGoals(parsed);
-      }
-    } catch {
-      localStorage.removeItem(STORAGE_KEY);
-    }
-  }, []);
-
-  useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(savingGoals));
-  }, [savingGoals]);
-
-  const addSavingGoal = (data: Omit<SavingGoal, "id">) => {
-    const goal = { id: uuid(), ...data };
-    setSavingGoals((prev) => [...prev, goal]);
-    return goal;
-  };
-
-  const updateSavingGoal = (id: string, data: Omit<SavingGoal, "id">) => {
-    setSavingGoals((prev) => prev.map((goal) => (goal.id === id ? { ...goal, ...data } : goal)));
-    return true;
-  };
-
-  const deleteSavingGoal = (id: string) => {
-    setSavingGoals((prev) => prev.filter((goal) => goal.id !== id));
-  };
-
-  return (
-    <SavingGoalsContext.Provider
-      value={{ savingGoals, addSavingGoal, updateSavingGoal, deleteSavingGoal }}
-    >
-      {children}
-    </SavingGoalsContext.Provider>
-  );
-}
+export const SavingGoalsProvider = ({
+  value,
+  children,
+}: {
+  value: SavingGoalsContextValue;
+  children: React.ReactNode;
+}) => (
+  <SavingGoalsContext.Provider value={value}>{children}</SavingGoalsContext.Provider>
+);
 
 export const useSavingGoals = () => {
   const context = useContext(SavingGoalsContext);
-  if (!context) throw new Error("useSavingGoals fuera de provider");
+  if (!context) throw new Error("useSavingGoals debe usarse dentro de SavingGoalsProvider");
   return context;
 };

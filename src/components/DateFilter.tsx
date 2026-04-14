@@ -29,8 +29,8 @@ export default function DateFilter({ onChange }: Props) {
           }}
           className={`px-4 py-1 rounded-full text-sm ${
             mode === "month"
-              ? "bg-[#FFD600] text-black"
-              : "bg-zinc-800 text-[#FFD600] opacity-45"
+              ? "bg-[#FACC15] text-black"
+              : "bg-zinc-800 text-[#FACC15] opacity-45"
           }`}
         >
           Mes
@@ -40,8 +40,8 @@ export default function DateFilter({ onChange }: Props) {
           onClick={() => setMode("range")}
           className={`px-4 py-1 rounded-full text-sm ${
             mode === "range"
-              ? "bg-[#FFD600] text-black"
-              : "bg-zinc-800 text-[#FFD600] opacity-45"
+              ? "bg-[#FACC15] text-black"
+              : "bg-zinc-800 text-[#FACC15] opacity-45"
           }`}
         >
           Rango
@@ -75,7 +75,7 @@ export default function DateFilter({ onChange }: Props) {
 
           <button
             onClick={() => start && end && onChange("", { start, end })}
-            className="bg-[#FFD600] text-black px-4 rounded-xl font-semibold"
+            className="rounded-xl bg-[#FACC15] px-4 font-semibold text-black"
           >
             Aplicar
           </button>

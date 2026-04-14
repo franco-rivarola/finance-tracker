@@ -7,7 +7,7 @@ import { TransactionInput } from "@/types/transaction";
 type Props = {
   open: boolean;
   onClose: () => void;
-  onSubmit: (data: TransactionInput) => boolean;
+  onSubmit: (data: TransactionInput) => Promise<boolean>;
   initialData?: TransactionInput;
   title: string;
 };
@@ -27,22 +27,24 @@ export default function TransactionModal({
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
+          onClick={onClose}
         >
           <motion.div
+            onClick={(event) => event.stopPropagation()}
             initial={{ scale: 0.95, opacity: 0, y: 30 }}
             animate={{ scale: 1, opacity: 1, y: 0 }}
             exit={{ scale: 0.95, opacity: 0 }}
             transition={{ duration: 0.2 }}
-            className="bg-white w-full max-w-md rounded-3xl p-6 shadow-2xl border border-gray-200"
+            className="w-full max-w-md rounded-3xl border border-zinc-200 bg-white p-6 text-black shadow-2xl"
           >
-            <h2 className="text-xl font-bold text-black mb-5">
+            <h2 className="mb-5 text-xl font-bold text-black">
               {title}
             </h2>
 
             <TransactionForm
               initialData={initialData}
-              onSubmit={(data) => {
-                const success = onSubmit(data);
+              onSubmit={async (data) => {
+                const success = await onSubmit(data);
                 if (success) onClose();
               }}
             />
@@ -50,7 +52,7 @@ export default function TransactionModal({
             {/* CANCELAR */}
             <button
               onClick={onClose}
-              className="w-full mt-4 py-2 rounded-xl border border-gray-300 text-gray-600 hover:bg-gray-100 transition"
+              className="mt-4 w-full rounded-xl border border-zinc-200 py-3 font-medium text-zinc-700 transition hover:bg-zinc-50"
             >
               Cancelar
             </button>
