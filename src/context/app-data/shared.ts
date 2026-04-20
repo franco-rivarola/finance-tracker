@@ -59,14 +59,14 @@ export const mapCategory = (row: CategoryRow): CategoryItem => ({
 export const mapBudget = (row: BudgetRow): Budget => ({
   id: row.id,
   categoryId: row.category_id,
-  amount: parseNumeric(row.amount),
+  amount: row.amount,
   month: fromMonthStart(row.month_start),
 });
 
 export const mapSavingGoal = (row: SavingGoalRow): SavingGoal => ({
   id: row.id,
   name: row.name,
-  targetAmount: parseNumeric(row.target_amount),
+  targetAmount: row.target_amount,
   accountId: row.account_id,
   targetDate: row.target_date,
   currency: row.currency as CurrencyCode,
@@ -90,10 +90,10 @@ export const mapTransaction = (
 
   return {
     id: row.id,
-    amount: parseNumeric(row.amount),
+    amount: row.amount,
     currency: row.currency as CurrencyCode,
-    baseAmount: parseNumeric(row.base_amount),
-    exchangeRate: parseNumeric(row.exchange_rate),
+    baseAmount: row.base_amount,
+    exchangeRate: row.exchange_rate,
     description: row.description,
     type: row.type,
     category,

@@ -57,7 +57,8 @@ export const addAccountRecord = async ({
     return null;
   }
 
-  const { data, error } = await (db.rpc("create_account") as any)({
+  
+  const { data, error } = await db.rpc("create_account", {
     p_name: trimmed,
     p_type: type,
     p_currency: currency || null,
@@ -103,7 +104,7 @@ export const updateAccountRecord = async ({
     return null;
   }
 
-  const { data, error } = await (db.rpc("update_account") as any)({
+  const { data, error } = await db.rpc("update_account", {
     p_account_id: id,
     p_name: trimmed,
     p_currency: currency ?? account.currency,
@@ -144,7 +145,7 @@ export const deleteAccountRecord = async ({
     return false;
   }
 
-  const { error } = await (db.rpc("delete_account") as any)({ p_account_id: id });
+  const { error } = await db.rpc("delete_account", { p_account_id: id });
   if (error) {
     console.error(error);
     alert(getAccountErrorMessage(error.message));

@@ -57,7 +57,7 @@ export const addCategoryRecord = async ({
     return false;
   }
 
-  const { data, error } = await (db.rpc("create_category") as any)({
+  const { data, error } = await db.rpc("create_category", {
     p_name: trimmed,
     p_type: type,
   });
@@ -102,7 +102,7 @@ export const updateCategoryRecord = async ({
     return false;
   }
 
-  const { data, error } = await (db.rpc("update_category") as any)({
+  const { data, error } = await db.rpc("update_category", {
     p_category_id: id,
     p_name: trimmed,
   });
@@ -138,7 +138,7 @@ export const deleteCategoryRecord = async ({
     return false;
   }
 
-  const { error } = await (db.rpc("delete_category") as any)({ p_category_id: id });
+  const { error } = await db.rpc("delete_category", { p_category_id: id });
   if (error) {
     console.error(error);
     alert(getCategoryErrorMessage(error.message));

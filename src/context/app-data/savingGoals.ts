@@ -35,7 +35,7 @@ export const addSavingGoalRecord = async ({
   const userId = session?.user.id;
   if (!userId) return null;
 
-  const { data: inserted, error } = await (db.rpc("create_saving_goal") as any)({
+  const { data: inserted, error } = await db.rpc("create_saving_goal", {
     p_account_id: data.accountId,
     p_name: data.name.trim(),
     p_target_amount: data.targetAmount,
@@ -65,7 +65,7 @@ export const updateSavingGoalRecord = async ({
   id: string;
   data: Omit<SavingGoal, "id">;
 }) => {
-  const { data: updated, error } = await (db.rpc("update_saving_goal") as any)({
+  const { data: updated, error } = await db.rpc("update_saving_goal", {
     p_saving_goal_id: id,
     p_account_id: data.accountId,
     p_name: data.name.trim(),
@@ -95,7 +95,7 @@ export const deleteSavingGoalRecord = async ({
   setSavingGoals: Setter<SavingGoal[]>;
   id: string;
 }) => {
-  const { error } = await (db.rpc("delete_saving_goal") as any)({ p_saving_goal_id: id });
+  const { error } = await db.rpc("delete_saving_goal", { p_saving_goal_id: id });
   if (error) {
     console.error(error);
     alert(getSavingGoalErrorMessage(error.message));

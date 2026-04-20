@@ -45,7 +45,7 @@ export const addBudgetRecord = async ({
     return false;
   }
 
-  const { data: inserted, error } = await (db.rpc("create_budget") as any)({
+  const { data: inserted, error } = await db.rpc("create_budget", {
     p_category_id: data.categoryId,
     p_amount: data.amount,
     p_month_start: toMonthStart(data.month),
@@ -82,7 +82,7 @@ export const updateBudgetRecord = async ({
     return false;
   }
 
-  const { data: updated, error } = await (db.rpc("update_budget") as any)({
+  const { data: updated, error } = await db.rpc("update_budget", {
     p_budget_id: id,
     p_category_id: data.categoryId,
     p_amount: data.amount,
@@ -108,7 +108,7 @@ export const deleteBudgetRecord = async ({
   setBudgets: Setter<Budget[]>;
   id: string;
 }) => {
-  const { error } = await (db.rpc("delete_budget") as any)({ p_budget_id: id });
+  const { error } = await db.rpc("delete_budget", { p_budget_id: id });
   if (error) {
     console.error(error);
     alert(getBudgetErrorMessage(error.message));

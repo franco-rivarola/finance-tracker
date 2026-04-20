@@ -13,7 +13,7 @@
     "@emotion/styled": "^11.14.1",
     "@mui/icons-material": "^7.3.9",
     "@mui/material": "^7.3.9",
-    "@supabase/supabase-js": "^2.102.1",
+    "@supabase/supabase-js": "^2.104.0",
     "boneyard-js": "^1.7.7",
     "framer-motion": "^12.38.0",
     "jspdf": "^4.2.1",
